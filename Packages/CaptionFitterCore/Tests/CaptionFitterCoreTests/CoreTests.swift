@@ -306,3 +306,100 @@ private func words(_ text: String, start: Double = 0, step: Double = 0.5) -> [Ti
         for (a, b) in zip(lines, lines.dropFirst()) { #expect(a.end <= b.start) }
     }
 }
+
+@Suite struct CrossCheckTests {
+    private let script = ["習慣說沒事 不只一天兩天", "沒對錯的答案 用一生諒解", "總覺得做什麼都錯", "習慣地想找人求救"]
+
+    private func segment(_ start: Double, _ end: Double, _ text: String, _ confidence: Double) -> RecognizedSegment {
+        RecognizedSegment(start: start, end: end, text: text, words: [TimedWord(text: text, start: start, end: end)], confidence: confidence)
+    }
+
+    /// Clearly heard talk between two sung passages.
+    private var talk: [RecognizedSegment] {
+        [
+            segment(20.0, 21.0, "大家好今天很開心", 0.5),          // fast but unsure: joins the talk
+            segment(21.2, 22.4, "可以不要去懷疑自己", 0.9),
+            segment(22.8, 24.0, "或者每一個選擇", 0.8),
+            segment(24.3, 25.0, "你們做什麼都錯", 0.7),            // quotes the script
+            segment(25.4, 26.9, "可以去相信你們自己", 0.9),
+            segment(27.2, 28.4, "這首歌希望你們會喜歡", 0.8),
+        ]
+    }
+
+    @Test func findsTalkThatIsNotInTheScript() {
+        let sung = [
+            segment(10, 13, "习惯说每次不是一千两千", 0.9),            // mis-heard, but it is the script
+            segment(13.5, 18, "从这代理想爱我才喜欢的世界", 0.9),      // confident nonsense at a singing pace
+            segment(30, 34, "我愁着有谁难受我", 0.5),
+        ]
+        let regions = CrossCheck.unscriptedRegions(in: sung + talk, scriptLines: script)
+        #expect(regions.count == 1)
+        #expect(regions.first?.lowerBound == 20.0)
+        #expect(regions.first?.upperBound == 28.4)
+    }
+
+    @Test func aShortRemarkIsNotEnough() {
+        let remark = [segment(20, 21.5, "謝謝大家今天來", 0.95)]
+        #expect(CrossCheck.unscriptedRegions(in: remark, scriptLines: script).isEmpty)
+    }
+
+    @Test func speechFollowingTheScriptIsNotARegion() {
+        let read = [
+            segment(0, 2, "習慣說沒事不只一天兩天", 0.95),
+            segment(2.2, 4, "沒對錯的答案用一生諒解", 0.95),
+            segment(4.2, 5.5, "總覺得做什麼都錯", 0.95),
+            segment(5.7, 7, "習慣地想找人求救", 0.95),
+        ]
+        #expect(CrossCheck.unscriptedRegions(in: read, scriptLines: script).isEmpty)
+    }
+
+    @Test func repeatedNonsenseIsIgnored() {
+        let loop = [segment(5, 25, String(repeating: "作曲", count: 60), 0.9)]
+        #expect(CrossCheck.unscriptedRegions(in: loop, scriptLines: script).isEmpty)
+        #expect(CrossCheck.isRepetitive(Array(String(repeating: "烟", count: 30))))
+        #expect(!CrossCheck.isRepetitive(Array("可以不要去懷疑自己或者每一個選擇")))
+    }
+
+    @Test func chanceOverlapDoesNotCountAsScript() {
+        let lines = script.map(SequenceAligner.comparisonCharacters)
+        #expect(!CrossCheck.resemblesScript(SequenceAligner.comparisonCharacters("相信你們自己"), script: lines))
+        #expect(CrossCheck.resemblesScript(SequenceAligner.comparisonCharacters("习惯说每次不是一千两千"), script: lines))
+    }
+
+    @Test func unheardSpansCoverGapsAndLoops() {
+        let segments = [
+            segment(9, 12, "習慣說沒事", 0.8),
+            segment(12.5, 40, String(repeating: "作曲", count: 60), 0.9),
+            segment(41, 44, "總覺得做什麼都錯", 0.8),
+        ]
+        let spans = CrossCheck.unheardSpans(in: segments, duration: 47)
+        #expect(spans == [0.0...9.0, 12.0...41.0])
+    }
+
+    @Test func agreementLooksOnlyNearTheLine() {
+        let words = [
+            TimedWord(text: "习惯说每次", start: 10, end: 12),
+            TimedWord(text: "总觉得做什么都错", start: 40, end: 43),
+        ]
+        let near = CrossCheck.agreement(line: "習慣說沒事 不只一天兩天", words: words, start: 10, end: 13)
+        #expect(near.matched == 3)
+        #expect(near.total == 11)
+        let far = CrossCheck.agreement(line: "總覺得做什麼都錯", words: words, start: 10, end: 13)
+        #expect(far.matched == 0)
+    }
+
+    @Test func reviewFlagsStretchedLinesAndTrustsConfirmedOnes() {
+        var lines: [SubtitleLine?] = [
+            SubtitleLine(start: 0, end: 2, text: "習慣說沒事", confidence: .partial),
+            SubtitleLine(start: 2, end: 4, text: "沒對錯的答案", confidence: .good),
+            SubtitleLine(start: 4, end: 20, text: "總覺得做什麼都錯", confidence: .good),
+            nil,
+        ]
+        let heard = Recognition(segments: [segment(0, 2, "习惯说没事", 0.9)], language: "zh")
+        WhisperRecognizer.review(&lines, paces: [0.4, 0.4, 2.0, nil], heard: heard)
+        #expect(lines[0]?.confidence == .good)      // the free transcription heard the same words
+        #expect(lines[1]?.confidence == .good)
+        #expect(lines[2]?.confidence == .partial)   // five times slower than the others
+        #expect(lines[3] == nil)
+    }
+}

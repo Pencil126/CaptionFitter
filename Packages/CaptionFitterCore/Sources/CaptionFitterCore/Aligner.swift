@@ -38,12 +38,15 @@ public struct RecognizedSegment: Equatable, Sendable {
     public var end: Double
     public var text: String
     public var words: [TimedWord]
+    /// How sure the model was of this text, 0...1 (mean probability of its words).
+    public var confidence: Double
 
-    public init(start: Double, end: Double, text: String, words: [TimedWord]) {
+    public init(start: Double, end: Double, text: String, words: [TimedWord], confidence: Double = 1) {
         self.start = start
         self.end = end
         self.text = text
         self.words = words
+        self.confidence = confidence
     }
 }
 
@@ -57,7 +60,6 @@ public struct Recognition: Equatable, Sendable {
     }
 
     public var words: [TimedWord] { segments.flatMap(\.words) }
-    public var text: String { segments.map(\.text).joined(separator: "\n") }
 }
 
 /// Produces timed words from audio. Hidden behind a protocol so the alignment
@@ -103,10 +105,17 @@ public final class WhisperRecognizer: SpeechRecognizing, @unchecked Sendable {
     }
 
     public func recognize(samples: [Float], language: SpeechLanguage, progress: @escaping @Sendable (Double) -> Void) async throws -> Recognition {
+        try await recognize(samples: samples, language: language, retries: 5, progress: progress)
+    }
+
+    /// - Parameter retries: How often to retry a passage with more randomness when the result
+    ///   looks poor. Zero gives the same output every time, with honest confidence values.
+    func recognize(samples: [Float], language: SpeechLanguage, retries: Int, progress: @escaping @Sendable (Double) -> Void) async throws -> Recognition {
         let options = DecodingOptions(
             task: .transcribe,
             language: language.code,
             temperature: 0,
+            temperatureFallbackCount: retries,
             usePrefillPrompt: true,
             detectLanguage: language.code == nil,
             skipSpecialTokens: true,
@@ -142,12 +151,20 @@ public final class WhisperRecognizer: SpeechRecognizing, @unchecked Sendable {
                 }
                 let text = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !text.isEmpty else { continue }
+                let probabilities = (segment.words ?? []).map { Double($0.probability) }
+                let confidence = probabilities.isEmpty
+                    ? Double(exp(segment.avgLogprob))
+                    : probabilities.reduce(0, +) / Double(probabilities.count)
+                if ProcessInfo.processInfo.environment["CAPTIONFITTER_DEBUG"] != nil {
+                    print(String(format: "free %7.2f-%7.2f  words=%.2f seg=%.2f nospeech=%.2f  %@", Double(segment.start), Double(segment.end), confidence, exp(segment.avgLogprob), segment.noSpeechProb, text))
+                }
                 segments.append(RecognizedSegment(
                     start: Double(segment.start),
                     end: Double(segment.end),
                     text: text,
                     // Fall back to the whole segment when the model returned no word timings.
-                    words: words.isEmpty ? [TimedWord(text: text, start: Double(segment.start), end: Double(segment.end))] : words
+                    words: words.isEmpty ? [TimedWord(text: text, start: Double(segment.start), end: Double(segment.end))] : words,
+                    confidence: confidence
                 ))
             }
         }

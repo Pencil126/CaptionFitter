@@ -25,6 +25,7 @@ let usage = """
   --out <檔案>       輸出 SRT 路徑，預設與媒體檔同名
   --words            另外印出辨識到的逐字時間
   --match            align 改用「先轉錄再比對文字」的舊做法
+  --no-cross-check   align 不做自由轉錄的交叉檢查（較快，但文稿以外的講話可能被配上字幕）
 """
 
 var arguments = Array(CommandLine.arguments.dropFirst())
@@ -126,7 +127,7 @@ do {
             let duration = try await AudioExtractor.duration(of: media)
             let samples = try await AudioExtractor.samples(from: media)
             let started = Date()
-            let lines = try await engine.align(scriptLines: scriptLines, samples: samples, language: language) { _ in }
+            let lines = try await engine.align(scriptLines: scriptLines, samples: samples, language: language, crossCheck: !flag("--no-cross-check")) { _ in }
             print(String(format: "對齊完成，耗時 %.1f 秒", Date().timeIntervalSince(started)))
             let destination = out.map { URL(fileURLWithPath: $0) } ?? media.deletingPathExtension().appendingPathExtension("srt")
             try SRTWriter.write(lines, to: destination)
