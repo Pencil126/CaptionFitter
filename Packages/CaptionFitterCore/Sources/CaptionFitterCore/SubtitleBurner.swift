@@ -1,6 +1,7 @@
 import AppKit
 import AVFoundation
-import QuartzCore
+import CoreImage
+import CoreText
 
 public struct RGBAColor: Equatable, Codable, Sendable {
     public var red: Double
@@ -60,27 +61,74 @@ public struct SubtitleStyle: Equatable, Codable, Sendable {
         return NSFont(name: fontName, size: size) ?? .boldSystemFont(ofSize: size)
     }
 
-    /// The styled text. Drawn twice by callers (outline pass underneath, fill pass on top)
-    /// so the outline grows outwards and never thins the glyphs.
-    public func attributedString(_ text: String, videoHeight: CGFloat, outlinePass: Bool) -> NSAttributedString {
-        let font = font(videoHeight: videoHeight)
+    /// The styled text for one drawing pass. The outline pass strokes the glyph edges and is
+    /// drawn underneath the fill pass, so the outline grows outwards and never thins the glyphs.
+    func attributedString(_ text: String, videoHeight: CGFloat, outlinePass: Bool) -> NSAttributedString {
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .center
         paragraph.lineBreakMode = .byWordWrapping
         var attributes: [NSAttributedString.Key: Any] = [
-            .font: font,
+            .font: font(videoHeight: videoHeight),
             .paragraphStyle: paragraph,
             .foregroundColor: NSColor(cgColor: textColor.cgColor) ?? .white,
         ]
         if outlinePass {
-            let outline = NSColor(cgColor: outlineColor.cgColor) ?? .black
-            attributes[.foregroundColor] = outline
-            attributes[.strokeColor] = outline
-            // Stroke width is a percentage of the font size; the stroke is centred on the
-            // glyph edge, so double it to get the requested thickness outside the glyph.
+            attributes[.strokeColor] = NSColor(cgColor: outlineColor.cgColor) ?? .black
+            // A positive width strokes only. It is a percentage of the font size and the stroke is
+            // centred on the glyph edge, so double it to get the requested thickness outside.
             attributes[.strokeWidth] = outlineScale * 200
         }
         return NSAttributedString(string: text, attributes: attributes)
+    }
+}
+
+/// Draws one subtitle to an image. The preview and the burned-in export both use this,
+/// so what is shown while editing is what ends up in the video.
+public enum SubtitleRenderer {
+    public struct Rendered {
+        public var image: CGImage
+        /// Where the image goes in a video frame whose origin is at the bottom-left, in points.
+        public var frame: CGRect
+    }
+
+    /// - Parameter scale: pixels per point (1 for export, the screen's backing scale for preview).
+    public static func render(text: String, style: SubtitleStyle, videoSize: CGSize, scale: CGFloat = 1) -> Rendered? {
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, videoSize.width > 1, videoSize.height > 1 else { return nil }
+
+        let fill = style.attributedString(text, videoHeight: videoSize.height, outlinePass: false)
+        let maxWidth = videoSize.width * 0.9
+        let fillSetter = CTFramesetterCreateWithAttributedString(fill)
+        let textSize = CTFramesetterSuggestFrameSizeWithConstraints(
+            fillSetter, CFRange(location: 0, length: 0), nil,
+            CGSize(width: maxWidth, height: .greatestFiniteMagnitude), nil
+        )
+        // Room around the text for the outline.
+        let pad = ceil(videoSize.height * style.fontScale * style.outlineScale) + 2
+        let width = ceil(textSize.width) + pad * 2
+        let height = ceil(textSize.height) + pad * 2
+
+        guard let context = CGContext(
+            data: nil, width: Int(ceil(width * scale)), height: Int(ceil(height * scale)),
+            bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return nil }
+        context.scaleBy(x: scale, y: scale)
+        context.setLineJoin(.round)
+
+        let path = CGPath(rect: CGRect(x: pad, y: pad, width: ceil(textSize.width), height: ceil(textSize.height)), transform: nil)
+        if style.outlineScale > 0 {
+            let outline = style.attributedString(text, videoHeight: videoSize.height, outlinePass: true)
+            let outlineSetter = CTFramesetterCreateWithAttributedString(outline)
+            CTFrameDraw(CTFramesetterCreateFrame(outlineSetter, CFRange(location: 0, length: 0), path, nil), context)
+        }
+        CTFrameDraw(CTFramesetterCreateFrame(fillSetter, CFRange(location: 0, length: 0), path, nil), context)
+
+        guard let image = context.makeImage() else { return nil }
+        let margin = videoSize.height * style.marginScale
+        let y = style.position == .bottom ? margin : videoSize.height - margin - height
+        return Rendered(image: image, frame: CGRect(x: (videoSize.width - width) / 2, y: y, width: width, height: height))
     }
 }
 
@@ -111,19 +159,16 @@ public enum SubtitleBurner {
         guard try await !asset.loadTracks(withMediaType: .video).isEmpty else { throw BurnError.noVideoTrack }
         let duration = try await asset.load(.duration).seconds
 
-        let composition = try await AVMutableVideoComposition.videoComposition(withPropertiesOf: asset)
-        let size = composition.renderSize
-
-        let videoLayer = CALayer()
-        videoLayer.frame = CGRect(origin: .zero, size: size)
-        let overlay = overlayLayer(lines: lines, style: style, size: size, duration: duration)
-        let parent = CALayer()
-        parent.frame = CGRect(origin: .zero, size: size)
-        parent.addSublayer(videoLayer)
-        parent.addSublayer(overlay)
-        composition.animationTool = AVVideoCompositionCoreAnimationTool(
-            postProcessingAsVideoLayer: videoLayer, in: parent
-        )
+        // Composite the subtitle for each frame's time. Only the line on screen is rendered
+        // (and cached), so memory stays flat however long the video is.
+        let overlay = OverlayProvider(lines: lines, style: style, duration: duration)
+        let composition = try await AVVideoComposition.videoComposition(with: asset) { request in
+            var image = request.sourceImage
+            if let subtitle = overlay.image(at: request.compositionTime.seconds, videoSize: image.extent.size) {
+                image = subtitle.composited(over: image)
+            }
+            request.finish(with: image, context: nil)
+        }
 
         guard let export = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
             throw BurnError.cannotExport
@@ -153,69 +198,36 @@ public enum SubtitleBurner {
         }
         progress(1)
     }
+}
 
-    /// One container layer per subtitle, each visible only during its time range.
-    static func overlayLayer(lines: [SubtitleLine], style: SubtitleStyle, size: CGSize, duration: Double) -> CALayer {
-        let overlay = CALayer()
-        overlay.frame = CGRect(origin: .zero, size: size)
-        guard duration > 0 else { return overlay }
+/// Finds and renders the subtitle for a given time; safe to call from the export queue.
+private final class OverlayProvider: @unchecked Sendable {
+    private let lines: [SubtitleLine]
+    private let style: SubtitleStyle
+    private let lock = NSLock()
+    private var cachedID: SubtitleLine.ID?
+    private var cachedImage: CIImage?
 
-        for line in lines {
-            guard line.end > line.start, line.start < duration,
-                  let container = lineLayer(text: line.text, style: style, size: size) else { continue }
-            container.opacity = 0
-
-            let start = max(0, line.start) / duration
-            let end = min(duration, line.end) / duration
-            let animation = CAKeyframeAnimation(keyPath: "opacity")
-            animation.values = [0, 1, 0, 0]
-            animation.keyTimes = [0, NSNumber(value: start), NSNumber(value: end), 1]
-            animation.calculationMode = .discrete
-            animation.duration = duration
-            animation.beginTime = AVCoreAnimationBeginTimeAtZero
-            animation.isRemovedOnCompletion = false
-            animation.fillMode = .both
-            container.add(animation, forKey: "visibility")
-
-            overlay.addSublayer(container)
-        }
-        return overlay
+    init(lines: [SubtitleLine], style: SubtitleStyle, duration: Double) {
+        self.lines = lines.filter { $0.end > $0.start && $0.start < duration }.sorted { $0.start < $1.start }
+        self.style = style
     }
 
-    /// The layer for one subtitle, laid out for a video frame of `size` whose origin is at the
-    /// bottom-left. Used both for the burned-in export and the live preview so they look alike.
-    public static func lineLayer(text: String, style: SubtitleStyle, size: CGSize, contentsScale: CGFloat = 2) -> CALayer? {
-        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, size.width > 0, size.height > 0 else { return nil }
-
-        let maxWidth = size.width * 0.9
-        let margin = size.height * style.marginScale
-        let fill = style.attributedString(text, videoHeight: size.height, outlinePass: false)
-        let bounds = fill.boundingRect(
-            with: CGSize(width: maxWidth, height: .greatestFiniteMagnitude),
-            options: [.usesLineFragmentOrigin, .usesFontLeading]
-        )
-        let pad = size.height * style.fontScale * max(style.outlineScale, 0.05) * 2
-        let height = ceil(bounds.height) + pad * 2
-        let y = style.position == .bottom ? margin : size.height - margin - height
-        let frame = CGRect(x: (size.width - maxWidth) / 2, y: y, width: maxWidth, height: height)
-
-        let container = CALayer()
-        container.frame = CGRect(origin: .zero, size: size)
-
-        var passes: [NSAttributedString] = [fill]
-        if style.outlineScale > 0 {
-            passes.insert(style.attributedString(text, videoHeight: size.height, outlinePass: true), at: 0)
+    func image(at time: Double, videoSize: CGSize) -> CIImage? {
+        // Latest line that has started and not yet ended, matching the preview.
+        guard let line = lines.last(where: { $0.start <= time && time < $0.end }) else { return nil }
+        lock.lock()
+        defer { lock.unlock() }
+        if cachedID == line.id { return cachedImage }
+        cachedID = line.id
+        cachedImage = SubtitleRenderer.render(text: line.text, style: style, videoSize: videoSize).map { rendered in
+            CIImage(cgImage: rendered.image)
+                .transformed(by: CGAffineTransform(
+                    scaleX: rendered.frame.width / CGFloat(rendered.image.width),
+                    y: rendered.frame.height / CGFloat(rendered.image.height)
+                ))
+                .transformed(by: CGAffineTransform(translationX: rendered.frame.minX, y: rendered.frame.minY))
         }
-        for pass in passes {
-            let layer = CATextLayer()
-            layer.string = pass
-            layer.isWrapped = true
-            layer.alignmentMode = .center
-            layer.contentsScale = contentsScale
-            layer.frame = frame
-            container.addSublayer(layer)
-        }
-        return container
+        return cachedImage
     }
 }

@@ -95,7 +95,10 @@ public enum ScriptSegmenter {
         }
         if !current.isEmpty { lines.append(current) }
 
-        return lines.flatMap { displayWidth($0) > limit ? hardWrap($0, limit: limit) : [$0] }
+        // Trailing commas are dropped from subtitles anyway, so do not let them count towards the width.
+        return lines.map(trimTrailingPunctuation).flatMap {
+            displayWidth($0) > limit ? hardWrap($0, limit: limit) : [$0]
+        }
     }
 
     /// Last resort for a clause with no punctuation: break between words, balancing the pieces so the last one is not a tiny leftover.

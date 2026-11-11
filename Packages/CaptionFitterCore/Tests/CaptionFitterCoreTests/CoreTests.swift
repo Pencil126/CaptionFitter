@@ -185,6 +185,20 @@ private func words(_ text: String, start: Double = 0, step: Double = 0.5) -> [Ti
     }
 }
 
+@Suite struct SRTRoundTripTests {
+    @Test func parsesWhatItWrites() {
+        let original = [
+            SubtitleLine(start: 1.25, end: 2.5, text: "第一句"),
+            SubtitleLine(start: 3661.041, end: 3662, text: "two\nlines"),
+        ]
+        let parsed = SRTWriter.parse(SRTWriter.string(from: original))
+        #expect(parsed.map(\.text) == ["第一句", "two\nlines"])
+        #expect(parsed.map(\.start) == [1.25, 3661.041])
+        #expect(parsed.map(\.end) == [2.5, 3662])
+        #expect(SRTWriter.parse("garbage\n\n1\nnot a time\ntext").isEmpty)
+    }
+}
+
 @Suite struct SubtitleDocumentTests {
     private func document() -> SubtitleDocument {
         SubtitleDocument(lines: [
@@ -262,5 +276,33 @@ private func words(_ text: String, start: Double = 0, step: Double = 0.5) -> [Ti
 
         let clean = AlignmentReport(lines: [SubtitleLine(start: 0, end: 90, text: "a", confidence: .good)], mediaDuration: 100)
         #expect(!clean.hasWarnings)
+    }
+}
+
+@Suite struct ForcedAlignerHelperTests {
+    @Test func speechTextDropsLayoutSpacesButKeepsWordSpaces() {
+        #expect(WhisperRecognizer.speechText("如果那麼痛 能不能讓我放手") == "如果那麼痛能不能讓我放手")
+        #expect(WhisperRecognizer.speechText("準備幾個Plan B") == "準備幾個Plan B")
+        #expect(WhisperRecognizer.speechText("hello world") == "hello world")
+    }
+
+    @Test func unheardLinesAreParkedAndFlagged() {
+        let timed: [SubtitleLine?] = [
+            nil,
+            SubtitleLine(start: 12, end: 14, text: "b", confidence: .good),
+            nil,
+            SubtitleLine(start: 20, end: 22, text: "d", confidence: .good),
+        ]
+        let lines = WhisperRecognizer.assemble(timed, lines: ["a", "b", "c", "d"], duration: 30)
+        #expect(lines.map(\.confidence) == [.interpolated, .good, .interpolated, .good])
+        #expect(lines[0].start == 0)
+        #expect(lines[0].duration == 0)      // not shown until given a time
+        #expect(lines[2].duration == 0)
+        #expect(!SRTWriter.string(from: lines).contains("\na\n"))
+        #expect(lines[1].start == 12)
+        #expect(lines[2].start >= lines[1].end)
+        #expect(lines[2].end <= 20)
+        #expect(lines[3].end <= 30)
+        for (a, b) in zip(lines, lines.dropFirst()) { #expect(a.end <= b.start) }
     }
 }

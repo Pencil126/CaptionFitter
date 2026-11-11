@@ -12,9 +12,10 @@ let usage = """
 用法：
   captionfitter-cli models                              列出模型
   captionfitter-cli download <模型>                     下載模型
+  captionfitter-cli delete <模型>                       刪除已下載的模型
   captionfitter-cli align <媒體檔> --script <文稿檔> [選項]   將文稿對齊成字幕
   captionfitter-cli transcribe <媒體檔> [選項]           無文稿，直接轉錄成字幕
-  captionfitter-cli burn <媒體檔> --srt-lines <SRT> --out <MP4>
+  captionfitter-cli burn <影片檔> --srt <SRT> --out <MP4>      把字幕燒入影片
 
 選項：
   --model <模型>     預設使用第一個已下載的模型
@@ -23,6 +24,7 @@ let usage = """
   --lyrics           以歌詞規則清理文稿（刪製作名單、段落標記、LRC 時間碼）
   --out <檔案>       輸出 SRT 路徑，預設與媒體檔同名
   --words            另外印出辨識到的逐字時間
+  --match            align 改用「先轉錄再比對文字」的舊做法
 """
 
 var arguments = Array(CommandLine.arguments.dropFirst())
@@ -42,7 +44,8 @@ func flag(_ name: String) -> Bool {
     return true
 }
 
-let store = ModelStore(baseFolder: ModelStore.defaultBaseFolder())
+// CAPTIONFITTER_MODELS points the tool at another model folder, e.g. the app's sandbox container.
+let store = ModelStore(baseFolder: ProcessInfo.processInfo.environment["CAPTIONFITTER_MODELS"].map { URL(fileURLWithPath: $0) } ?? ModelStore.defaultBaseFolder())
 let formatter = ByteCountFormatter()
 
 func recognizer(model requested: String?) async throws -> WhisperRecognizer {
@@ -94,6 +97,11 @@ do {
         print("")
         print("完成：\(folder.path)")
 
+    case "delete":
+        guard let model = arguments.first else { fail(usage) }
+        try store.delete(model)
+        print("已刪除 \(model)")
+
     case "align", "transcribe":
         let model = option("--model")
         let languageID = option("--lang") ?? SpeechLanguage.default.id
@@ -106,6 +114,26 @@ do {
         guard let language = SpeechLanguage.all.first(where: { $0.id == languageID }) else { fail("不支援的語系：\(languageID)") }
 
         let media = URL(fileURLWithPath: mediaPath)
+        let forced = !flag("--match")
+        if command == "align", forced {
+            // Default: forced alignment (the model reads the script against the audio).
+            guard let scriptPath else { fail("align 需要 --script") }
+            let script = try String(contentsOfFile: scriptPath, encoding: .utf8)
+            let scriptLines = asLyrics
+                ? LyricsCleaner.clean(script)
+                : ScriptSegmenter.segment(script, mode: wrap.map { .automatic(maxWidth: $0) } ?? .keepLineBreaks)
+            let engine = try await recognizer(model: model)
+            let duration = try await AudioExtractor.duration(of: media)
+            let samples = try await AudioExtractor.samples(from: media)
+            let started = Date()
+            let lines = try await engine.align(scriptLines: scriptLines, samples: samples, language: language) { _ in }
+            print(String(format: "對齊完成，耗時 %.1f 秒", Date().timeIntervalSince(started)))
+            let destination = out.map { URL(fileURLWithPath: $0) } ?? media.deletingPathExtension().appendingPathExtension("srt")
+            try SRTWriter.write(lines, to: destination)
+            printSummary(lines, duration: duration)
+            print("已輸出：\(destination.path)")
+            exit(0)
+        }
         let (recognition, duration) = try await recognize(media, model: model, language: language)
         if showWords {
             for word in recognition.words { print(String(format: "%7.2f %7.2f  %@", word.start, word.end, word.text)) }
@@ -130,6 +158,16 @@ do {
         try SRTWriter.write(lines, to: destination)
         printSummary(lines, duration: duration)
         print("已輸出：\(destination.path)")
+
+    case "burn":
+        guard let srtPath = option("--srt"), let out = option("--out"), let mediaPath = arguments.first else { fail(usage) }
+        let lines = SRTWriter.parse(try String(contentsOfFile: srtPath, encoding: .utf8))
+        print("燒入 \(lines.count) 行字幕…")
+        try await SubtitleBurner.burn(
+            lines: lines, style: SubtitleStyle(),
+            source: URL(fileURLWithPath: mediaPath), destination: URL(fileURLWithPath: out)
+        ) { _ in }
+        print("已輸出：\(out)")
 
     default:
         fail(usage)

@@ -80,7 +80,7 @@ public enum AlignerError: LocalizedError {
 
 /// Speech recognition backed by a locally stored WhisperKit model.
 public final class WhisperRecognizer: SpeechRecognizing, @unchecked Sendable {
-    private let whisperKit: WhisperKit
+    let whisperKit: WhisperKit
 
     /// - Parameters:
     ///   - modelFolder: Folder of an already downloaded model. Nothing is downloaded here except
