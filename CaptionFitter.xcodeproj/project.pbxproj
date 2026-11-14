@@ -12,6 +12,8 @@
 
 /* Begin PBXFileReference section */
 		CF0000000000000000000010 /* CaptionFitter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CaptionFitter.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF0000000000000000000012 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		CF0000000000000000000013 /* CaptionFitterCore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CaptionFitterCore; path = Packages/CaptionFitterCore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -37,7 +39,9 @@
 		CF0000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				CF0000000000000000000012 /* README.md */,
 				CF0000000000000000000011 /* App */,
+				CF0000000000000000000013 /* CaptionFitterCore */,
 				CF0000000000000000000002 /* Products */,
 			);
 			sourceTree = "<group>";
