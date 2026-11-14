@@ -10,15 +10,15 @@ struct PlayerPanel: View {
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                Color.black
+                // Also shows through as the letterbox around the video.
+                Color.brandNavy
                 if model.mediaURL == nil {
-                    Text("尚未選擇影片或音檔")
-                        .foregroundStyle(.secondary)
+                    emptyState
                 } else {
                     if !model.hasVideo {
                         Image(systemName: "waveform")
                             .font(.system(size: 56))
-                            .foregroundStyle(.gray.opacity(0.5))
+                            .foregroundStyle(.white.opacity(0.3))
                     }
                     PlayerSurface(player: model.player, text: model.currentLine?.text ?? "", style: model.style)
                 }
@@ -31,6 +31,24 @@ struct PlayerPanel: View {
                 .padding(.vertical, 8)
                 .background(.bar)
         }
+    }
+
+    /// Shown before any media is chosen. The colours are fixed rather than semantic because
+    /// the preview stays navy in both light and dark mode.
+    private var emptyState: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "waveform")
+                .font(.system(size: 44, weight: .medium))
+                .foregroundStyle(Color.brandAmber)
+            Text("尚未選擇影片或音檔")
+                .font(.title3.weight(.medium))
+                .foregroundStyle(.white)
+            Text("把檔案拖進視窗，或按 ⌘O 開啟")
+                .font(.callout)
+                .foregroundStyle(.white.opacity(0.6))
+        }
+        .multilineTextAlignment(.center)
+        .padding()
     }
 
     private var transport: some View {
@@ -62,6 +80,7 @@ struct PlayerPanel: View {
                 value: Binding(get: { model.currentTime }, set: { model.seek(to: $0) }),
                 in: 0...max(model.mediaDuration, 0.1)
             )
+            .brandTint()
 
             Text("\(TimeText.string(model.currentTime)) / \(TimeText.string(model.mediaDuration))")
                 .font(.callout)
@@ -217,6 +236,7 @@ struct StylePanel: View {
                 Text("明顯").tag(SubtitleStyle.Shadow.strong)
             }
             .pickerStyle(.segmented)
+            .brandTint()
             LabeledContent("高度") {
                 slider($model.style.verticalPosition, in: 0...1, value: percent(model.style.verticalPosition, digits: 0))
             }
@@ -258,6 +278,7 @@ struct StylePanel: View {
     private func slider(_ binding: Binding<Double>, in range: ClosedRange<Double>, value: String) -> some View {
         HStack(spacing: 8) {
             Slider(value: binding, in: range)
+                .brandTint()
             Text(value)
                 .monospacedDigit()
                 .foregroundStyle(.secondary)

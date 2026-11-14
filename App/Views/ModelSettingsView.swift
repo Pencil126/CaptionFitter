@@ -105,7 +105,7 @@ struct ModelSettingsView: View {
                     models.defaultModelID = model.id
                 } label: {
                     Image(systemName: isDefault ? "largecircle.fill.circle" : "circle")
-                        .foregroundStyle(isDefault ? Color.accentColor : .secondary)
+                        .foregroundStyle(isDefault ? Color.brandGlyph : .secondary)
                 }
                 .buttonStyle(.plain)
                 .help(isDefault ? "目前使用的模型" : "設為使用的模型")
@@ -132,6 +132,7 @@ struct ModelSettingsView: View {
 
             if let progress {
                 ProgressView(value: progress)
+                    .brandTint()
                     .frame(width: 110)
                 Text("\(Int(progress * 100))%")
                     .font(.caption)

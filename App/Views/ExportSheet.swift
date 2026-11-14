@@ -21,6 +21,7 @@ struct ExportSheet: View {
                     Text("兩者都要").tag(ExportContent.both)
                 }
                 .pickerStyle(.radioGroup)
+                .brandTint()
                 .disabled(!model.hasVideo)
 
                 if let info = model.videoInfo, model.hasVideo {
@@ -53,14 +54,17 @@ struct ExportSheet: View {
                 Spacer()
                 Button("取消", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button("輸出…") {
+                Button {
                     let chosen = content.wrappedValue
                     let options = options
                     dismiss()
                     // Let the sheet close before the save dialog opens.
                     DispatchQueue.main.async { model.export(chosen, options: options) }
+                } label: {
+                    BrandButtonLabel("輸出…")
                 }
                 .keyboardShortcut(.defaultAction)
+                .brandTint()
             }
             .padding([.horizontal, .bottom], 20)
         }

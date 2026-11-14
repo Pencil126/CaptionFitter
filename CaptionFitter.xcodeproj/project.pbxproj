@@ -13,8 +13,8 @@
 /* Begin PBXFileReference section */
 		CF0000000000000000000010 /* CaptionFitter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CaptionFitter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF0000000000000000000012 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		CF0000000000000000000014 /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 		CF0000000000000000000013 /* CaptionFitterCore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CaptionFitterCore; path = Packages/CaptionFitterCore; sourceTree = "<group>"; };
+		CF0000000000000000000014 /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -244,6 +244,7 @@
 		CF0000000000000000000051 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/CaptionFitter.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
@@ -272,6 +273,7 @@
 		CF0000000000000000000052 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/CaptionFitter.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;

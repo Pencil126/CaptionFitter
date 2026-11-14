@@ -88,6 +88,7 @@ struct SubtitleEditor: View {
             }
             Toggle("跟隨播放", isOn: $model.followPlayback)
                 .toggleStyle(.checkbox)
+                .brandTint()
         }
         .labelStyle(.titleAndIcon)
         .buttonStyle(.borderless)
@@ -105,12 +106,15 @@ struct SubtitleEditor: View {
             }
             HStack {
                 Spacer()
-                Button("套用") {
+                Button {
                     let delta = shiftSeconds
                     model.edit("整體平移", undoManager: undoManager) { $0.shiftAll(by: delta) }
                     showShift = false
+                } label: {
+                    BrandButtonLabel("套用")
                 }
                 .keyboardShortcut(.defaultAction)
+                .brandTint()
                 .disabled(shiftSeconds == 0)
             }
         }
@@ -218,6 +222,7 @@ private struct UnscriptedRegionRow: View {
             Spacer(minLength: 4)
             if model.fillingRegionID == region.id {
                 ProgressView(value: model.workProgress)
+                    .brandTint()
                     .frame(width: 80)
                 Button("取消") { model.cancelWork() }
             } else {
@@ -280,7 +285,7 @@ private struct SubtitleRow: View {
                 } else {
                     Image(systemName: isPlaying ? "play.fill" : "circle.fill")
                         .font(.system(size: isPlaying ? 9 : 7))
-                        .foregroundStyle(isPlaying ? Color.accentColor : status?.color ?? .clear)
+                        .foregroundStyle(isPlaying ? Color.brandGlyph : status?.color ?? .clear)
                 }
             }
             .frame(width: 16, height: 16)

@@ -42,6 +42,7 @@ struct SetupPanel: View {
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()
+                        .brandTint()
 
                         switch model.source {
                         case .paste: pasteSection
@@ -155,6 +156,7 @@ struct SetupPanel: View {
             .frame(minHeight: 200)
 
         Toggle("自動斷行", isOn: $model.autoWrap)
+            .brandTint()
         if model.autoWrap {
             widthStepper
             Text("依標點與字數把整段文字切成字幕行。")
@@ -194,11 +196,14 @@ struct SetupPanel: View {
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(model.workTitle).font(.callout)
-                    if let progress = model.workProgress {
-                        ProgressView(value: progress)
-                    } else {
-                        ProgressView().progressViewStyle(.linear)
+                    Group {
+                        if let progress = model.workProgress {
+                            ProgressView(value: progress)
+                        } else {
+                            ProgressView().progressViewStyle(.linear)
+                        }
                     }
+                    .brandTint()
                 }
                 Button("取消") { model.cancelWork() }
             }
@@ -206,11 +211,12 @@ struct SetupPanel: View {
             Button {
                 model.align(using: models, undoManager: undoManager)
             } label: {
-                Text(model.source == .transcribe ? "轉錄字幕" : "對齊字幕")
+                BrandButtonLabel(model.source == .transcribe ? "轉錄字幕" : "對齊字幕")
                     .frame(maxWidth: .infinity)
             }
             .controlSize(.large)
             .buttonStyle(.borderedProminent)
+            .brandTint()
             .disabled(!model.canAlign)
             .keyboardShortcut(.return, modifiers: .command)
         }
@@ -309,7 +315,7 @@ struct LyricsSearchSection: View {
         } label: {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Image(systemName: selected ? "largecircle.fill.circle" : "circle")
-                    .foregroundStyle(selected ? Color.accentColor : .secondary)
+                    .foregroundStyle(selected ? Color.brandGlyph : .secondary)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(result.trackName).lineLimit(1)
                     Text([result.artistName, result.albumName ?? ""].filter { !$0.isEmpty }.joined(separator: " · "))

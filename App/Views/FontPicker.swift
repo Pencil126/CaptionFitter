@@ -67,7 +67,7 @@ struct FontPicker: View {
                 Spacer(minLength: 0)
                 if font.name == selection {
                     Image(systemName: "checkmark")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(Color.brandGlyph)
                 }
             }
             .contentShape(Rectangle())

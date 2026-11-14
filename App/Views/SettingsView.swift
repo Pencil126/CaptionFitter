@@ -41,6 +41,7 @@ struct GeneralSettingsView: View {
                             in: Double(AppModel.skipSecondsRange.lowerBound)...Double(AppModel.skipSecondsRange.upperBound),
                             step: 1
                         )
+                        .brandTint()
                         Text("\(skipSeconds) 秒")
                             .monospacedDigit()
                             .frame(width: 44, alignment: .trailing)
