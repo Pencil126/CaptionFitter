@@ -11,11 +11,18 @@ enum ScriptSource: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .paste: return "貼上文稿"
+        case .paste: return "貼上逐字稿"
         case .transcribe: return "自動轉錄"
         case .lyrics: return "搜尋歌詞"
         }
     }
+}
+
+/// What the Export sheet can write.
+enum ExportContent: String, CaseIterable, Identifiable {
+    case srt, video, both
+
+    var id: String { rawValue }
 }
 
 /// A passage of speech that is not in the script and has no subtitles yet.
@@ -33,6 +40,8 @@ final class AppModel {
     private(set) var mediaURL: URL?
     private(set) var mediaDuration: Double = 0
     private(set) var hasVideo = false
+    /// Picture size and frame rate; nil for audio-only media.
+    private(set) var videoInfo: VideoInfo?
     let player = AVPlayer()
     private(set) var currentTime: Double = 0
     private(set) var isPlaying = false
@@ -79,6 +88,7 @@ final class AppModel {
     /// nil while the amount of work is unknown.
     private(set) var workProgress: Double?
     var errorMessage: String?
+    var showExport = false
     /// Set when aligning was attempted without a downloaded model.
     var needsModel = false
 
@@ -148,6 +158,7 @@ final class AppModel {
         mediaURL = url
         mediaDuration = 0
         hasVideo = false
+        videoInfo = nil
         document = SubtitleDocument()
         selection = nil
         report = nil
@@ -164,9 +175,11 @@ final class AppModel {
             let asset = AVURLAsset(url: url)
             let duration = (try? await asset.load(.duration).seconds) ?? 0
             let videoTracks = (try? await asset.loadTracks(withMediaType: .video)) ?? []
+            let info = await VideoInfo.load(from: url)
             guard mediaURL == url else { return }
             mediaDuration = duration.isFinite ? duration : 0
             hasVideo = !videoTracks.isEmpty
+            videoInfo = info
         }
     }
 
@@ -186,6 +199,27 @@ final class AppModel {
         player.seek(to: CMTime(seconds: clamped, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
     }
 
+    /// Seconds the skip buttons and ⇧← / ⇧→ move by; set in Settings.
+    static let skipSecondsKey = "skipSeconds"
+    static let skipSecondsRange = 1...15
+    static var skipSeconds: Int {
+        let stored = UserDefaults.standard.integer(forKey: skipSecondsKey)
+        return stored == 0 ? 5 : min(max(stored, skipSecondsRange.lowerBound), skipSecondsRange.upperBound)
+    }
+
+    func skip(forward: Bool) {
+        guard mediaURL != nil else { return }
+        seek(to: currentTime + Double(forward ? Self.skipSeconds : -Self.skipSeconds))
+    }
+
+    /// Moves one video frame (1/30 s for audio) and stops there.
+    func stepFrame(forward: Bool) {
+        guard mediaURL != nil else { return }
+        player.pause()
+        let rate = videoInfo.map(\.frameRate).flatMap { $0 > 1 ? $0 : nil } ?? 30
+        seek(to: currentTime + (forward ? 1 : -1) / rate)
+    }
+
     // MARK: - Lyrics search
 
     func searchLyrics() {
@@ -201,7 +235,7 @@ final class AppModel {
                 let found = try await LRCLIBClient().search(track: track, artist: artist)
                 searchResults = LRCLIBClient.rank(found, mediaDuration: duration)
                 if searchResults.isEmpty {
-                    searchMessage = "找不到符合的歌詞。可以改用其他關鍵字，或改用「貼上文稿」。"
+                    searchMessage = "找不到符合的歌詞。可以改用其他關鍵字，或改用「貼上逐字稿」。"
                     selectedResultID = nil
                 } else if let first = searchResults.first {
                     // Preselect the version closest in length; the user can pick another.
@@ -458,29 +492,41 @@ final class AppModel {
 
     // MARK: - Export
 
-    func exportSRT() {
-        guard !document.lines.isEmpty, let mediaURL else { return }
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [UTType(filenameExtension: "srt") ?? .plainText]
-        panel.directoryURL = mediaURL.deletingLastPathComponent()
-        panel.nameFieldStringValue = mediaURL.deletingPathExtension().lastPathComponent + ".srt"
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        do {
-            try SRTWriter.write(document.lines, to: url)
-        } catch {
-            errorMessage = "無法儲存 SRT：\(error.localizedDescription)"
-        }
-    }
+    /// Asks where to save, then writes the subtitle file, the video, or both.
+    func export(_ content: ExportContent, options: VideoExportOptions) {
+        guard !document.lines.isEmpty, !isWorking, let mediaURL else { return }
+        let wantsVideo = content != .srt && hasVideo
+        let baseName = mediaURL.deletingPathExtension().lastPathComponent
+        var directory = mediaURL.deletingLastPathComponent()
 
-    func exportVideo() {
-        guard !document.lines.isEmpty, hasVideo, !isWorking, let mediaURL else { return }
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.mpeg4Movie]
-        panel.directoryURL = mediaURL.deletingLastPathComponent()
-        panel.nameFieldStringValue = mediaURL.deletingPathExtension().lastPathComponent + "-字幕.mp4"
-        guard panel.runModal() == .OK, let destination = panel.url else { return }
-        guard destination.standardizedFileURL != mediaURL.standardizedFileURL else {
-            errorMessage = "輸出檔不能與原始影片相同。"
+        // Collect every destination first, so cancelling halfway writes nothing.
+        var subtitleURL: URL?
+        if content != .video || !hasVideo {
+            let type = UTType(filenameExtension: "srt") ?? .plainText
+            guard let url = askDestination(type: type, name: baseName + ".srt", directory: directory, title: "儲存 SRT 字幕檔") else { return }
+            subtitleURL = url
+            directory = url.deletingLastPathComponent()
+        }
+        var videoURL: URL?
+        if wantsVideo {
+            guard let url = askDestination(type: .mpeg4Movie, name: baseName + "-字幕.mp4", directory: directory, title: "儲存含字幕的影片") else { return }
+            guard url.standardizedFileURL != mediaURL.standardizedFileURL else {
+                errorMessage = "輸出檔不能與原始影片相同。"
+                return
+            }
+            videoURL = url
+        }
+
+        if let subtitleURL {
+            do {
+                try SRTWriter.write(document.lines, to: subtitleURL)
+            } catch {
+                errorMessage = "無法儲存 SRT：\(error.localizedDescription)"
+                return
+            }
+        }
+        guard let videoURL else {
+            if let subtitleURL { NSWorkspace.shared.activateFileViewerSelecting([subtitleURL]) }
             return
         }
 
@@ -498,18 +544,28 @@ final class AppModel {
                 workTask = nil
             }
             do {
-                try await SubtitleBurner.burn(lines: lines, style: style, source: mediaURL, destination: destination) { fraction in
+                try await SubtitleBurner.burn(lines: lines, style: style, source: mediaURL, destination: videoURL, options: options) { fraction in
                     Task { @MainActor [weak self] in
                         guard let self, self.isWorking else { return }
                         self.workProgress = fraction
                     }
                 }
-                NSWorkspace.shared.activateFileViewerSelecting([destination])
+                NSWorkspace.shared.activateFileViewerSelecting([videoURL])
             } catch is CancellationError {
                 // Cancelled by the user; the partial file has been removed.
             } catch {
                 if !Task.isCancelled { errorMessage = error.localizedDescription }
             }
         }
+    }
+
+    private func askDestination(type: UTType, name: String, directory: URL, title: String) -> URL? {
+        let panel = NSSavePanel()
+        panel.title = title
+        panel.message = title
+        panel.allowedContentTypes = [type]
+        panel.directoryURL = directory
+        panel.nameFieldStringValue = name
+        return panel.runModal() == .OK ? panel.url : nil
     }
 }

@@ -86,7 +86,7 @@ public enum AlignerError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .emptyScript: return "文稿是空的。"
+        case .emptyScript: return "逐字稿是空的。"
         case .noSpeechFound: return "在這個檔案中沒有辨識到人聲。"
         }
     }

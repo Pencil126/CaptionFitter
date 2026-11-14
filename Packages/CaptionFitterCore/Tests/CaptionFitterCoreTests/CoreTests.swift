@@ -449,3 +449,59 @@ private func words(_ text: String, start: Double = 0, step: Double = 0.5) -> [Ti
         #expect(document.hasLines(in: 3...12))
     }
 }
+
+@Suite struct ExportOptionTests {
+    @Test func resolutionFollowsTheShortSideAndKeepsTheShape() {
+        let landscape = VideoInfo(size: CGSize(width: 1920, height: 1080), frameRate: 60)
+        #expect(VideoExportOptions(resolution: .p720).renderSize(for: landscape) == CGSize(width: 1280, height: 720))
+        #expect(VideoExportOptions(resolution: .p480).renderSize(for: landscape) == CGSize(width: 854, height: 480))
+        let upright = VideoInfo(size: CGSize(width: 1080, height: 1920), frameRate: 30)
+        #expect(VideoExportOptions(resolution: .p720).renderSize(for: upright) == CGSize(width: 720, height: 1280))
+    }
+
+    @Test func neverEnlargesOrAddsFrames() {
+        let small = VideoInfo(size: CGSize(width: 1280, height: 720), frameRate: 29.97)
+        #expect(VideoExportOptions(resolution: .p1080).renderSize(for: small) == small.size)
+        #expect(VideoExportOptions(resolution: .p720).renderSize(for: small) == small.size)
+        #expect(!VideoExportOptions.applies(.p720, to: small))
+        #expect(VideoExportOptions.applies(.p480, to: small))
+        #expect(VideoExportOptions(frameRate: .fps60).framesPerSecond(for: small) == nil)
+        #expect(VideoExportOptions(frameRate: .fps30).framesPerSecond(for: small) == nil)
+        let fast = VideoInfo(size: small.size, frameRate: 59.94)
+        #expect(VideoExportOptions(frameRate: .fps30).framesPerSecond(for: fast) == 30)
+    }
+
+    @Test func styleSavedByAnEarlierVersionStillLoads() throws {
+        let old = #"{"fontName":"Helvetica","fontScale":0.08,"textColor":{"red":1,"green":1,"blue":0,"alpha":1},"outlineColor":{"red":0,"green":0,"blue":0,"alpha":1},"outlineScale":0.1,"position":"top","marginScale":0.1}"#
+        let style = try JSONDecoder().decode(SubtitleStyle.self, from: Data(old.utf8))
+        #expect(style.fontName == "Helvetica")
+        #expect(style.shadow == .none)
+        #expect(abs(style.verticalPosition - 0.9) < 0.0001)
+        let again = try JSONDecoder().decode(SubtitleStyle.self, from: JSONEncoder().encode(style))
+        #expect(again == style)
+    }
+
+    @Test func subtitleStaysInsideThePicture() throws {
+        let size = CGSize(width: 1280, height: 720)
+        for position in [0.0, 0.5, 1.0] {
+            let style = SubtitleStyle(shadow: .strong, verticalPosition: position)
+            let rendered = try #require(SubtitleRenderer.render(text: "測試字幕", style: style, videoSize: size))
+            #expect(rendered.frame.minY >= 0 && rendered.frame.maxY <= size.height)
+        }
+        let low = try #require(SubtitleRenderer.render(text: "測試", style: SubtitleStyle(verticalPosition: 0.1), videoSize: size))
+        let high = try #require(SubtitleRenderer.render(text: "測試", style: SubtitleStyle(verticalPosition: 0.9), videoSize: size))
+        #expect(high.frame.midY > low.frame.midY)
+    }
+}
+
+@Suite struct ReviewTests {
+    @Test func markingALineReviewedClearsItsState() {
+        var document = SubtitleDocument(lines: [
+            SubtitleLine(start: 0, end: 2, text: "a", confidence: .partial),
+            SubtitleLine(start: 2, end: 2, text: "b", confidence: .interpolated),
+        ])
+        document.markReviewed(document.lines[0].id)
+        #expect(document.lines.map(\.confidence) == [.manual, .interpolated])
+        #expect(document.lines[0].start == 0 && document.lines[0].end == 2)
+    }
+}

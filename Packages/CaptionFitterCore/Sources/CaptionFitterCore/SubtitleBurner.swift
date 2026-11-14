@@ -25,8 +25,8 @@ public struct RGBAColor: Equatable, Codable, Sendable {
 /// Appearance of subtitles, shared by the on-screen preview and the burned-in export.
 /// Sizes are fractions of the video height so the look is the same at any resolution.
 public struct SubtitleStyle: Equatable, Codable, Sendable {
-    public enum Position: String, Codable, CaseIterable, Sendable {
-        case bottom, top
+    public enum Shadow: String, Codable, CaseIterable, Sendable {
+        case none, soft, strong
     }
 
     public var fontName: String
@@ -36,20 +36,66 @@ public struct SubtitleStyle: Equatable, Codable, Sendable {
     public var outlineColor: RGBAColor
     /// Outline thickness as a fraction of the font size (0 disables the outline).
     public var outlineScale: Double
-    public var position: Position
-    /// Distance from the edge as a fraction of the video height.
-    public var marginScale: Double
+    public var shadow: Shadow
+    /// Where the subtitle sits between the bottom (0) and the top (1) of the picture.
+    /// The text stays inside the frame at either end.
+    public var verticalPosition: Double
 
     public init(fontName: String = "PingFang TC", fontScale: Double = 0.06, textColor: RGBAColor = .white,
-                outlineColor: RGBAColor = .black, outlineScale: Double = 0.08, position: Position = .bottom,
-                marginScale: Double = 0.06) {
+                outlineColor: RGBAColor = .black, outlineScale: Double = 0.08, shadow: Shadow = .none,
+                verticalPosition: Double = 0.06) {
         self.fontName = fontName
         self.fontScale = fontScale
         self.textColor = textColor
         self.outlineColor = outlineColor
         self.outlineScale = outlineScale
-        self.position = position
-        self.marginScale = marginScale
+        self.shadow = shadow
+        self.verticalPosition = verticalPosition
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case fontName, fontScale, textColor, outlineColor, outlineScale, shadow, verticalPosition
+        // Written by earlier versions: an edge and a distance from it.
+        case position, marginScale
+    }
+
+    public init(from decoder: Decoder) throws {
+        let defaults = SubtitleStyle()
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        fontName = try values.decodeIfPresent(String.self, forKey: .fontName) ?? defaults.fontName
+        fontScale = try values.decodeIfPresent(Double.self, forKey: .fontScale) ?? defaults.fontScale
+        textColor = try values.decodeIfPresent(RGBAColor.self, forKey: .textColor) ?? defaults.textColor
+        outlineColor = try values.decodeIfPresent(RGBAColor.self, forKey: .outlineColor) ?? defaults.outlineColor
+        outlineScale = try values.decodeIfPresent(Double.self, forKey: .outlineScale) ?? defaults.outlineScale
+        shadow = try values.decodeIfPresent(Shadow.self, forKey: .shadow) ?? defaults.shadow
+        if let position = try values.decodeIfPresent(Double.self, forKey: .verticalPosition) {
+            verticalPosition = min(max(position, 0), 1)
+        } else if let margin = try values.decodeIfPresent(Double.self, forKey: .marginScale) {
+            let top = try values.decodeIfPresent(String.self, forKey: .position) == "top"
+            verticalPosition = min(max(top ? 1 - margin : margin, 0), 1)
+        } else {
+            verticalPosition = defaults.verticalPosition
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(fontName, forKey: .fontName)
+        try values.encode(fontScale, forKey: .fontScale)
+        try values.encode(textColor, forKey: .textColor)
+        try values.encode(outlineColor, forKey: .outlineColor)
+        try values.encode(outlineScale, forKey: .outlineScale)
+        try values.encode(shadow, forKey: .shadow)
+        try values.encode(verticalPosition, forKey: .verticalPosition)
+    }
+
+    /// Blur, drop and opacity of the shadow, the first two as fractions of the font size.
+    var shadowMetrics: (blur: Double, offset: Double, alpha: Double)? {
+        switch shadow {
+        case .none: return nil
+        case .soft: return (0.12, 0.04, 0.65)
+        case .strong: return (0.05, 0.08, 0.9)
+        }
     }
 
     /// `fontName` may be a family name ("PingFang TC") or a PostScript name.
@@ -103,8 +149,10 @@ public enum SubtitleRenderer {
             fillSetter, CFRange(location: 0, length: 0), nil,
             CGSize(width: maxWidth, height: .greatestFiniteMagnitude), nil
         )
-        // Room around the text for the outline.
-        let pad = ceil(videoSize.height * style.fontScale * style.outlineScale) + 2
+        // Room around the text for the outline and the shadow.
+        let fontSize = max(8, videoSize.height * style.fontScale)
+        let shadow = style.shadowMetrics
+        let pad = ceil(fontSize * (style.outlineScale + (shadow.map { $0.blur + $0.offset } ?? 0))) + 2
         let width = ceil(textSize.width) + pad * 2
         let height = ceil(textSize.height) + pad * 2
 
@@ -118,17 +166,94 @@ public enum SubtitleRenderer {
         context.setLineJoin(.round)
 
         let path = CGPath(rect: CGRect(x: pad, y: pad, width: ceil(textSize.width), height: ceil(textSize.height)), transform: nil)
+        if let shadow {
+            // One shadow for outline and fill together. Shadow sizes are in pixels, not points.
+            context.setShadow(
+                offset: CGSize(width: 0, height: -fontSize * shadow.offset * scale),
+                blur: fontSize * shadow.blur * scale,
+                color: CGColor(srgbRed: 0, green: 0, blue: 0, alpha: shadow.alpha)
+            )
+            context.beginTransparencyLayer(auxiliaryInfo: nil)
+        }
         if style.outlineScale > 0 {
             let outline = style.attributedString(text, videoHeight: videoSize.height, outlinePass: true)
             let outlineSetter = CTFramesetterCreateWithAttributedString(outline)
             CTFrameDraw(CTFramesetterCreateFrame(outlineSetter, CFRange(location: 0, length: 0), path, nil), context)
         }
         CTFrameDraw(CTFramesetterCreateFrame(fillSetter, CFRange(location: 0, length: 0), path, nil), context)
+        if shadow != nil { context.endTransparencyLayer() }
 
         guard let image = context.makeImage() else { return nil }
-        let margin = videoSize.height * style.marginScale
-        let y = style.position == .bottom ? margin : videoSize.height - margin - height
+        let y = max(0, videoSize.height - height) * min(max(style.verticalPosition, 0), 1)
         return Rendered(image: image, frame: CGRect(x: (videoSize.width - width) / 2, y: y, width: width, height: height))
+    }
+}
+
+/// Picture size and frame rate of a video.
+public struct VideoInfo: Equatable, Sendable {
+    /// As displayed, with any rotation applied.
+    public var size: CGSize
+    public var frameRate: Double
+
+    public init(size: CGSize, frameRate: Double) {
+        self.size = size
+        self.frameRate = frameRate
+    }
+
+    /// The "p" number: 1080 for both 1920×1080 and an upright 1080×1920.
+    public var shortSide: Double { min(size.width, size.height) }
+
+    public static func load(from url: URL) async -> VideoInfo? {
+        guard let track = try? await AVURLAsset(url: url).loadTracks(withMediaType: .video).first,
+              let (natural, transform, rate) = try? await track.load(.naturalSize, .preferredTransform, .nominalFrameRate)
+        else { return nil }
+        let size = natural.applying(transform)
+        return VideoInfo(size: CGSize(width: abs(size.width), height: abs(size.height)), frameRate: Double(rate))
+    }
+}
+
+/// Picture quality of an exported video. Neither setting ever goes above the source.
+public struct VideoExportOptions: Equatable, Sendable {
+    public enum Resolution: Int, CaseIterable, Identifiable, Sendable {
+        case original = 0, p480 = 480, p720 = 720, p1080 = 1080
+        public var id: Int { rawValue }
+    }
+
+    public enum FrameRate: Int, CaseIterable, Identifiable, Sendable {
+        case original = 0, fps30 = 30, fps60 = 60
+        public var id: Int { rawValue }
+    }
+
+    public var resolution: Resolution
+    public var frameRate: FrameRate
+
+    public init(resolution: Resolution = .original, frameRate: FrameRate = .original) {
+        self.resolution = resolution
+        self.frameRate = frameRate
+    }
+
+    /// Whether this resolution would shrink the video (enlarging is never done).
+    public static func applies(_ resolution: Resolution, to info: VideoInfo) -> Bool {
+        resolution == .original || Double(resolution.rawValue) < info.shortSide - 0.5
+    }
+
+    /// Whether this frame rate would lower the video's (frames are never invented).
+    public static func applies(_ frameRate: FrameRate, to info: VideoInfo) -> Bool {
+        frameRate == .original || Double(frameRate.rawValue) < info.frameRate - 0.5
+    }
+
+    /// The exported picture size: the short side becomes the chosen resolution, the shape is
+    /// kept, and both sides are even as video encoders require.
+    public func renderSize(for info: VideoInfo) -> CGSize {
+        guard resolution != .original, Self.applies(resolution, to: info) else { return info.size }
+        let scale = Double(resolution.rawValue) / info.shortSide
+        func even(_ value: Double) -> Double { max(2, (value * scale / 2).rounded() * 2) }
+        return CGSize(width: even(info.size.width), height: even(info.size.height))
+    }
+
+    /// The exported frame rate, or nil to keep the source's.
+    public func framesPerSecond(for info: VideoInfo) -> Int? {
+        frameRate != .original && Self.applies(frameRate, to: info) ? frameRate.rawValue : nil
     }
 }
 
@@ -153,21 +278,40 @@ public enum SubtitleBurner {
         style: SubtitleStyle,
         source: URL,
         destination: URL,
+        options: VideoExportOptions = VideoExportOptions(),
         progress: @escaping @Sendable (Double) -> Void
     ) async throws {
         let asset = AVURLAsset(url: source)
-        guard try await !asset.loadTracks(withMediaType: .video).isEmpty else { throw BurnError.noVideoTrack }
+        guard let info = await VideoInfo.load(from: source) else { throw BurnError.noVideoTrack }
         let duration = try await asset.load(.duration).seconds
+        let renderSize = options.renderSize(for: info)
+        let frame = CGRect(origin: .zero, size: renderSize)
 
         // Composite the subtitle for each frame's time. Only the line on screen is rendered
         // (and cached), so memory stays flat however long the video is.
         let overlay = OverlayProvider(lines: lines, style: style, duration: duration)
-        let composition = try await AVVideoComposition.videoComposition(with: asset) { request in
+        let composition = try await AVMutableVideoComposition.videoComposition(with: asset) { request in
             var image = request.sourceImage
-            if let subtitle = overlay.image(at: request.compositionTime.seconds, videoSize: image.extent.size) {
+            // Fit the picture to the output size first, so the subtitle is drawn at full sharpness.
+            let extent = image.extent
+            if abs(extent.width - renderSize.width) > 0.5 || abs(extent.height - renderSize.height) > 0.5 {
+                image = image
+                    .transformed(by: CGAffineTransform(translationX: -extent.minX, y: -extent.minY))
+                    .applyingFilter("CILanczosScaleTransform", parameters: [
+                        kCIInputScaleKey: renderSize.height / extent.height,
+                        kCIInputAspectRatioKey: (renderSize.width / extent.width) / (renderSize.height / extent.height),
+                    ])
+            }
+            if let subtitle = overlay.image(at: request.compositionTime.seconds, videoSize: renderSize) {
                 image = subtitle.composited(over: image)
             }
-            request.finish(with: image, context: nil)
+            request.finish(with: image.cropped(to: frame), context: nil)
+        }
+        composition.renderSize = renderSize
+        if let rate = options.framesPerSecond(for: info) {
+            composition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(rate))
+            // Otherwise frames keep the source track's timing and the setting above is ignored.
+            composition.sourceTrackIDForFrameTiming = kCMPersistentTrackID_Invalid
         }
 
         guard let export = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {

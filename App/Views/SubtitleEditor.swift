@@ -20,7 +20,7 @@ struct SubtitleEditor: View {
                 ContentUnavailableView(
                     "還沒有字幕",
                     systemImage: "captions.bubble",
-                    description: Text("在左側選擇檔案與文稿，然後按「對齊字幕」。")
+                    description: Text("在左側選擇檔案與逐字稿，然後按「對齊字幕」。")
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -79,9 +79,10 @@ struct SubtitleEditor: View {
 
             Spacer()
 
-            if let report = model.report {
-                let doubtful = report.partialLines + report.interpolatedLines
-                Text(doubtful > 0 ? "\(report.totalLines) 行，\(doubtful) 行待檢查" : "\(model.document.lines.count) 行")
+            if !model.document.lines.isEmpty {
+                let lines = model.document.lines
+                let doubtful = lines.filter { $0.confidence != .good && $0.confidence != .manual }.count
+                Text(doubtful > 0 ? "\(lines.count) 行，\(doubtful) 行待檢查" : "\(lines.count) 行")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
@@ -197,7 +198,7 @@ private struct UnscriptedRegionRow: View {
             Text("\(TimeText.string(region.range.lowerBound)) → \(TimeText.string(region.range.upperBound))")
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
-            Text("這裡有 \(seconds) 秒文稿以外的講話")
+            Text("這裡有 \(seconds) 秒逐字稿以外的講話")
                 .foregroundStyle(.secondary)
             Spacer()
             if model.fillingRegionID == region.id {
@@ -240,22 +241,47 @@ private struct SubtitleRow: View {
     let line: SubtitleLine
     let isPlaying: Bool
     @FocusState private var textFocused: Bool
+    @State private var hovering = false
+    @State private var hoveringMarker = false
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: isPlaying ? "play.fill" : "circle.fill")
-                .font(.system(size: isPlaying ? 9 : 7))
-                .foregroundStyle(isPlaying ? Color.accentColor : confidenceColor)
-                .frame(width: 12)
-                .help(confidenceHelp)
+            // The mark turns into a tick under the pointer: click to say the line has been checked.
+            Group {
+                if status != nil, hoveringMarker {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.green)
+                } else {
+                    Image(systemName: isPlaying ? "play.fill" : "circle.fill")
+                        .font(.system(size: isPlaying ? 9 : 7))
+                        .foregroundStyle(isPlaying ? Color.accentColor : status?.color ?? .clear)
+                }
+            }
+            .frame(width: 16, height: 16)
+            .contentShape(Rectangle())
+            .onHover { hoveringMarker = $0 }
+            .onTapGesture {
+                guard status != nil else { return }
+                model.edit("標記為已檢查", undoManager: undoManager) { $0.markReviewed(line.id) }
+            }
+            .help(status == nil ? "時間已對上聲音" : "標記為已檢查")
+            .accessibilityAddTraits(status == nil ? [] : .isButton)
+            .accessibilityLabel(status == nil ? "" : "標記為已檢查")
 
             Text("\(index)")
                 .foregroundStyle(.tertiary)
                 .frame(width: 30, alignment: .trailing)
 
-            Text("\(TimeText.string(line.start)) → \(TimeText.string(line.end))")
-                .foregroundStyle(.secondary)
-                .frame(width: 150, alignment: .leading)
+            Group {
+                if line.duration == 0 {
+                    Text("尚未設定時間")
+                } else {
+                    Text("\(TimeText.string(line.start)) → \(TimeText.string(line.end))")
+                }
+            }
+            .foregroundStyle(.secondary)
+            .frame(width: 150, alignment: .leading)
 
             TextField("字幕文字", text: Binding(
                 get: { line.text },
@@ -275,23 +301,37 @@ private struct SubtitleRow: View {
         }
         .monospacedDigit()
         .padding(.vertical, 2)
-    }
-
-    private var confidenceColor: Color {
-        switch line.confidence {
-        case .good, .manual: return .clear
-        case .partial, .transcribed: return .orange
-        case .interpolated: return .red
+        // A faint wash marks lines that need attention; the selection highlight takes over when selected.
+        .background {
+            if let status, model.selection != line.id {
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(status.color.opacity(0.1))
+                    .padding(.horizontal, -6)
+                    .padding(.vertical, -1)
+            }
         }
+        // Pointing at a marked line says what the mark means.
+        .overlay(alignment: .trailing) {
+            if hovering, let status {
+                Text(status.label)
+                    .font(.caption)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(status.color, in: Capsule())
+                    .allowsHitTesting(false)
+            }
+        }
+        .onHover { hovering = $0 }
     }
 
-    private var confidenceHelp: String {
+    /// Colour and explanation for lines that deserve a look; nil for lines that are fine.
+    private var status: (color: Color, label: String)? {
         switch line.confidence {
-        case .good: return "時間已對上聲音"
-        case .manual: return "已手動調整"
-        case .partial: return "不確定這一行的時間是否正確，建議播放檢查"
-        case .interpolated: return "在聲音中找不到這一行。設定時間之前，它不會顯示也不會輸出"
-        case .transcribed: return "這一行不在文稿中，是自動聽寫的，可能有錯字"
+        case .good, .manual: return nil
+        case .partial: return (.orange, "待檢查：時間不確定，建議播放確認")
+        case .interpolated: return (.red, "找不到：聲音中沒有這一行，設定時間前不會輸出")
+        case .transcribed: return (.blue, "自動聽寫：不在逐字稿中，可能有錯字")
         }
     }
 }

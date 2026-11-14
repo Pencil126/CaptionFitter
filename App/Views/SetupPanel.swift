@@ -36,8 +36,8 @@ struct SetupPanel: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    section("文稿") {
-                        Picker("文稿來源", selection: $model.source) {
+                    section("逐字稿") {
+                        Picker("逐字稿來源", selection: $model.source) {
                             ForEach(ScriptSource.allCases) { Text($0.title).tag($0) }
                         }
                         .pickerStyle(.segmented)
@@ -125,7 +125,10 @@ struct SetupPanel: View {
     @ViewBuilder private var modelPicker: some View {
         @Bindable var models = models
         if models.downloadedModels.isEmpty {
-            Button("下載語音模型…") { openSettings() }
+            Button("下載語音模型…") {
+                SettingsTab.models.select()
+                openSettings()
+            }
         } else {
             HStack {
                 Picker("模型", selection: Binding(
@@ -136,6 +139,7 @@ struct SetupPanel: View {
                 }
                 .labelsHidden()
                 Button {
+                    SettingsTab.models.select()
                     openSettings()
                 } label: {
                     Image(systemName: "gearshape")
@@ -147,7 +151,7 @@ struct SetupPanel: View {
 
     @ViewBuilder private var pasteSection: some View {
         @Bindable var model = model
-        ScriptEditor(text: $model.pastedScript, placeholder: "在這裡貼上文稿…")
+        ScriptEditor(text: $model.pastedScript, placeholder: "在這裡貼上逐字稿…")
             .frame(minHeight: 200)
 
         Toggle("自動斷行", isOn: $model.autoWrap)
@@ -157,7 +161,7 @@ struct SetupPanel: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         } else {
-            Text("文稿的每一行會成為一行字幕。")
+            Text("逐字稿的每一行會成為一行字幕。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -169,7 +173,7 @@ struct SetupPanel: View {
     }
 
     @ViewBuilder private var transcribeSection: some View {
-        Text("沒有文稿時，直接由語音模型聽寫出字幕。之後可在編輯器中修正錯字。")
+        Text("沒有逐字稿時，直接由語音模型聽寫出字幕。之後可在編輯器中修正錯字。")
             .font(.callout)
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)

@@ -18,17 +18,14 @@ struct CaptionFitterApp: App {
                     .keyboardShortcut("o")
             }
             CommandGroup(after: .saveItem) {
-                Button("輸出 SRT…") { model.exportSRT() }
+                Button("輸出…") { model.showExport = true }
                     .keyboardShortcut("e")
-                    .disabled(model.document.lines.isEmpty)
-                Button("輸出含字幕的影片…") { model.exportVideo() }
-                    .keyboardShortcut("e", modifiers: [.command, .shift])
-                    .disabled(model.document.lines.isEmpty || !model.hasVideo)
+                    .disabled(model.document.lines.isEmpty || model.isWorking)
             }
         }
 
         Settings {
-            ModelSettingsView()
+            SettingsView()
                 .environment(modelManager)
         }
     }

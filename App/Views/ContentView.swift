@@ -35,20 +35,28 @@ struct ContentView: View {
                 .help("調整預覽與輸出影片的字幕外觀")
 
                 Button {
-                    model.exportSRT()
+                    model.showExport = true
                 } label: {
-                    Label("輸出 SRT", systemImage: "square.and.arrow.up")
+                    Label("輸出", systemImage: "square.and.arrow.up")
                 }
-                .disabled(model.document.lines.isEmpty)
-                .help("將字幕儲存為 SRT 檔")
-
-                Button {
-                    model.exportVideo()
-                } label: {
-                    Label("輸出影片", systemImage: "film")
+                .disabled(model.document.lines.isEmpty || model.isWorking)
+                .help("輸出 SRT 字幕檔、含字幕的影片，或兩者（⌘E）")
+            }
+        }
+        .sheet(isPresented: $model.showExport) {
+            ExportSheet()
+                .environment(model)
+        }
+        .background {
+            PlaybackKeys { key in
+                guard model.mediaURL != nil else { return false }
+                switch key {
+                case .skipBack: model.skip(forward: false)
+                case .skipForward: model.skip(forward: true)
+                case .frameBack: model.stepFrame(forward: false)
+                case .frameForward: model.stepFrame(forward: true)
                 }
-                .disabled(model.document.lines.isEmpty || !model.hasVideo || model.isWorking)
-                .help("把字幕燒入影片，另存為 MP4")
+                return true
             }
         }
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
@@ -68,7 +76,10 @@ struct ContentView: View {
             Text(model.errorMessage ?? "")
         }
         .alert("尚未下載語音模型", isPresented: $model.needsModel) {
-            Button("開啟模型管理") { openSettings() }
+            Button("開啟模型管理") {
+                SettingsTab.models.select()
+                openSettings()
+            }
             Button("取消", role: .cancel) {}
         } message: {
             Text("對齊字幕需要語音模型。請先在設定中下載一個模型。")

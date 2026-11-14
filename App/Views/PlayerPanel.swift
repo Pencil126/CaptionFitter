@@ -5,6 +5,7 @@ import SwiftUI
 /// Video preview with the current subtitle drawn on top, plus transport controls.
 struct PlayerPanel: View {
     @Environment(AppModel.self) private var model
+    @AppStorage(AppModel.skipSecondsKey) private var skipSeconds = 5
 
     var body: some View {
         VStack(spacing: 0) {
@@ -35,6 +36,13 @@ struct PlayerPanel: View {
     private var transport: some View {
         HStack(spacing: 10) {
             Button {
+                model.skip(forward: false)
+            } label: {
+                skipLabel("gobackward")
+            }
+            .help("倒退 \(skipSeconds) 秒（⇧←）")
+
+            Button {
                 model.togglePlayback()
             } label: {
                 Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
@@ -44,24 +52,38 @@ struct PlayerPanel: View {
             .help("播放／暫停（空白鍵）")
 
             Button {
-                model.seek(to: model.currentTime - 3)
+                model.skip(forward: true)
             } label: {
-                Image(systemName: "gobackward.5")
+                skipLabel("goforward")
             }
-            .help("倒退 3 秒")
+            .help("快進 \(skipSeconds) 秒（⇧→）")
 
             Slider(
                 value: Binding(get: { model.currentTime }, set: { model.seek(to: $0) }),
                 in: 0...max(model.mediaDuration, 0.1)
             )
 
-            Text("\(TimeText.string(model.currentTime)) / \(TimeText.duration(model.mediaDuration))")
+            Text("\(TimeText.string(model.currentTime)) / \(TimeText.string(model.mediaDuration))")
                 .font(.callout)
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
         }
         .buttonStyle(.borderless)
         .disabled(model.mediaURL == nil)
+    }
+}
+
+extension PlayerPanel {
+    /// The system has numbered skip icons for a few amounts only; others get the number beside a plain icon.
+    @ViewBuilder fileprivate func skipLabel(_ symbol: String) -> some View {
+        if [5, 10, 15].contains(skipSeconds) {
+            Image(systemName: "\(symbol).\(skipSeconds)")
+        } else {
+            HStack(spacing: 1) {
+                Image(systemName: symbol)
+                Text("\(skipSeconds)").font(.caption2).monospacedDigit()
+            }
+        }
     }
 }
 
@@ -159,20 +181,32 @@ struct StylePanel: View {
                 ForEach(Self.families, id: \.self) { Text($0).tag($0) }
             }
             LabeledContent("大小") {
-                Slider(value: $model.style.fontScale, in: 0.03...0.12)
+                slider($model.style.fontScale, in: 0.03...0.12, value: percent(model.style.fontScale, digits: 1))
             }
+            .help("字體高度占畫面高度的比例")
             ColorPicker("文字顏色", selection: color(\.textColor), supportsOpacity: false)
             ColorPicker("描邊顏色", selection: color(\.outlineColor), supportsOpacity: false)
             LabeledContent("描邊粗細") {
-                Slider(value: $model.style.outlineScale, in: 0...0.2)
+                slider($model.style.outlineScale, in: 0...0.2, value: percent(model.style.outlineScale, digits: 0))
             }
-            Picker("位置", selection: $model.style.position) {
-                Text("底部").tag(SubtitleStyle.Position.bottom)
-                Text("頂部").tag(SubtitleStyle.Position.top)
+            .help("描邊寬度占字體大小的比例，0% 為不描邊")
+            Picker("陰影", selection: $model.style.shadow) {
+                Text("無").tag(SubtitleStyle.Shadow.none)
+                Text("柔和").tag(SubtitleStyle.Shadow.soft)
+                Text("明顯").tag(SubtitleStyle.Shadow.strong)
             }
             .pickerStyle(.segmented)
-            LabeledContent("邊距") {
-                Slider(value: $model.style.marginScale, in: 0...0.3)
+            LabeledContent("高度") {
+                slider($model.style.verticalPosition, in: 0...1, value: percent(model.style.verticalPosition, digits: 0))
+            }
+            .help("字幕在畫面中的高度：0% 貼齊底部，100% 貼齊頂部")
+            LabeledContent("") {
+                HStack(spacing: 6) {
+                    Button("底部") { model.style.verticalPosition = SubtitleStyle().verticalPosition }
+                    Button("中間") { model.style.verticalPosition = 0.5 }
+                    Button("頂部") { model.style.verticalPosition = 1 - SubtitleStyle().verticalPosition }
+                }
+                .controlSize(.small)
             }
             HStack {
                 Spacer()
@@ -180,7 +214,22 @@ struct StylePanel: View {
             }
         }
         .padding(16)
-        .frame(width: 320)
+        .frame(width: 360)
+    }
+
+    /// A slider with its current value shown beside it.
+    private func slider(_ binding: Binding<Double>, in range: ClosedRange<Double>, value: String) -> some View {
+        HStack(spacing: 8) {
+            Slider(value: binding, in: range)
+            Text(value)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .frame(width: 46, alignment: .trailing)
+        }
+    }
+
+    private func percent(_ value: Double, digits: Int) -> String {
+        String(format: "%.\(digits)f%%", value * 100)
     }
 
     private func color(_ keyPath: WritableKeyPath<SubtitleStyle, RGBAColor>) -> Binding<Color> {

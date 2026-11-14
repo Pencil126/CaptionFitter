@@ -13,20 +13,21 @@ let usage = """
   captionfitter-cli models                              列出模型
   captionfitter-cli download <模型>                     下載模型
   captionfitter-cli delete <模型>                       刪除已下載的模型
-  captionfitter-cli align <媒體檔> --script <文稿檔> [選項]   將文稿對齊成字幕
-  captionfitter-cli transcribe <媒體檔> [選項]           無文稿，直接轉錄成字幕
+  captionfitter-cli align <媒體檔> --script <逐字稿檔> [選項]   將逐字稿對齊成字幕
+  captionfitter-cli transcribe <媒體檔> [選項]           無逐字稿，直接轉錄成字幕
   captionfitter-cli burn <影片檔> --srt <SRT> --out <MP4>      把字幕燒入影片
+      [--height 480|720|1080] [--fps 30|60] [--shadow none|soft|strong] [--position 0…1]
 
 選項：
   --model <模型>     預設使用第一個已下載的模型
   --lang <語系>      zh-Hant（預設）、zh-Hans、yue、en、ja、ko、auto…
-  --auto-wrap <寬度> 文稿自動斷行（每行字數上限）；未指定則保留原本換行
-  --lyrics           以歌詞規則清理文稿（刪製作名單、段落標記、LRC 時間碼）
+  --auto-wrap <寬度> 逐字稿自動斷行（每行字數上限）；未指定則保留原本換行
+  --lyrics           以歌詞規則清理逐字稿（刪製作名單、段落標記、LRC 時間碼）
   --out <檔案>       輸出 SRT 路徑，預設與媒體檔同名
   --words            另外印出辨識到的逐字時間
   --match            align 改用「先轉錄再比對文字」的舊做法
-  --no-cross-check   align 不做自由轉錄的交叉檢查（較快，但文稿以外的講話可能被配上字幕）
-  --fill-unscripted  align 把偵測到的「文稿以外的講話」自動轉錄並補成字幕
+  --no-cross-check   align 不做自由轉錄的交叉檢查（較快，但逐字稿以外的講話可能被配上字幕）
+  --fill-unscripted  align 把偵測到的「逐字稿以外的講話」自動轉錄並補成字幕
 """
 
 var arguments = Array(CommandLine.arguments.dropFirst())
@@ -133,7 +134,7 @@ do {
             print(String(format: "對齊完成，耗時 %.1f 秒", Date().timeIntervalSince(started)))
             var document = SubtitleDocument(lines: alignment.lines)
             for region in alignment.unscriptedRegions {
-                print(String(format: "文稿以外的講話：%.1f–%.1f 秒", region.lowerBound, region.upperBound))
+                print(String(format: "逐字稿以外的講話：%.1f–%.1f 秒", region.lowerBound, region.upperBound))
                 guard fill else { continue }
                 let fillStarted = Date()
                 let added = try await engine.transcribe(region: region, samples: samples, language: language, maxWidth: wrap ?? 16) { _ in }
@@ -177,9 +178,16 @@ do {
         guard let srtPath = option("--srt"), let out = option("--out"), let mediaPath = arguments.first else { fail(usage) }
         let lines = SRTWriter.parse(try String(contentsOfFile: srtPath, encoding: .utf8))
         print("燒入 \(lines.count) 行字幕…")
+        var style = SubtitleStyle()
+        if let name = option("--shadow"), let shadow = SubtitleStyle.Shadow(rawValue: name) { style.shadow = shadow }
+        if let position = option("--position").flatMap(Double.init) { style.verticalPosition = position }
+        let options = VideoExportOptions(
+            resolution: option("--height").flatMap(Int.init).flatMap(VideoExportOptions.Resolution.init) ?? .original,
+            frameRate: option("--fps").flatMap(Int.init).flatMap(VideoExportOptions.FrameRate.init) ?? .original
+        )
         try await SubtitleBurner.burn(
-            lines: lines, style: SubtitleStyle(),
-            source: URL(fileURLWithPath: mediaPath), destination: URL(fileURLWithPath: out)
+            lines: lines, style: style,
+            source: URL(fileURLWithPath: mediaPath), destination: URL(fileURLWithPath: out), options: options
         ) { _ in }
         print("已輸出：\(out)")
 

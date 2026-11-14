@@ -120,6 +120,12 @@ public struct SubtitleDocument: Equatable, Codable, Sendable {
         lines.contains { $0.duration > 0 && range.contains(($0.start + $0.end) / 2) }
     }
 
+    /// Clears the "needs a look" state of a line the user has checked.
+    public mutating func markReviewed(_ id: SubtitleLine.ID) {
+        guard let i = index(of: id) else { return }
+        lines[i].confidence = .manual
+    }
+
     public mutating func delete(_ id: SubtitleLine.ID) {
         lines.removeAll { $0.id == id }
     }
