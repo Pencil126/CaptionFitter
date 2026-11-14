@@ -107,6 +107,8 @@ final class AppModel {
             style = SubtitleStyle()
         }
 
+        FontCatalog.preload()
+
         timeObserver = player.addPeriodicTimeObserver(
             forInterval: CMTime(value: 1, timescale: 20), queue: .main
         ) { [weak self] time in

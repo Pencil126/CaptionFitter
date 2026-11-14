@@ -30,6 +30,12 @@ public struct SubtitleStyle: Equatable, Codable, Sendable {
     }
 
     public var fontName: String
+    /// How heavy the letters are, on AppKit's 0–15 scale (5 is regular, 9 is bold).
+    /// The family's closest weight is used.
+    public var fontWeight: Int
+    /// PostScript name of the exact face chosen. Used while it belongs to `fontName`;
+    /// after switching family, `fontWeight` picks the nearest face instead.
+    public var fontFace: String?
     /// Font size as a fraction of the video height.
     public var fontScale: Double
     public var textColor: RGBAColor
@@ -41,10 +47,13 @@ public struct SubtitleStyle: Equatable, Codable, Sendable {
     /// The text stays inside the frame at either end.
     public var verticalPosition: Double
 
-    public init(fontName: String = "PingFang TC", fontScale: Double = 0.06, textColor: RGBAColor = .white,
-                outlineColor: RGBAColor = .black, outlineScale: Double = 0.08, shadow: Shadow = .none,
-                verticalPosition: Double = 0.06) {
+    public init(fontName: String = "PingFang TC", fontWeight: Int = 9, fontFace: String? = nil,
+                fontScale: Double = 0.05, textColor: RGBAColor = .white,
+                outlineColor: RGBAColor = .black, outlineScale: Double = 0, shadow: Shadow = .none,
+                verticalPosition: Double = 0.08) {
         self.fontName = fontName
+        self.fontWeight = fontWeight
+        self.fontFace = fontFace
         self.fontScale = fontScale
         self.textColor = textColor
         self.outlineColor = outlineColor
@@ -54,7 +63,7 @@ public struct SubtitleStyle: Equatable, Codable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case fontName, fontScale, textColor, outlineColor, outlineScale, shadow, verticalPosition
+        case fontName, fontWeight, fontFace, fontScale, textColor, outlineColor, outlineScale, shadow, verticalPosition
         // Written by earlier versions: an edge and a distance from it.
         case position, marginScale
     }
@@ -63,6 +72,8 @@ public struct SubtitleStyle: Equatable, Codable, Sendable {
         let defaults = SubtitleStyle()
         let values = try decoder.container(keyedBy: CodingKeys.self)
         fontName = try values.decodeIfPresent(String.self, forKey: .fontName) ?? defaults.fontName
+        fontWeight = try values.decodeIfPresent(Int.self, forKey: .fontWeight) ?? defaults.fontWeight
+        fontFace = try values.decodeIfPresent(String.self, forKey: .fontFace)
         fontScale = try values.decodeIfPresent(Double.self, forKey: .fontScale) ?? defaults.fontScale
         textColor = try values.decodeIfPresent(RGBAColor.self, forKey: .textColor) ?? defaults.textColor
         outlineColor = try values.decodeIfPresent(RGBAColor.self, forKey: .outlineColor) ?? defaults.outlineColor
@@ -81,6 +92,8 @@ public struct SubtitleStyle: Equatable, Codable, Sendable {
     public func encode(to encoder: Encoder) throws {
         var values = encoder.container(keyedBy: CodingKeys.self)
         try values.encode(fontName, forKey: .fontName)
+        try values.encode(fontWeight, forKey: .fontWeight)
+        try values.encodeIfPresent(fontFace, forKey: .fontFace)
         try values.encode(fontScale, forKey: .fontScale)
         try values.encode(textColor, forKey: .textColor)
         try values.encode(outlineColor, forKey: .outlineColor)
@@ -101,7 +114,8 @@ public struct SubtitleStyle: Equatable, Codable, Sendable {
     /// `fontName` may be a family name ("PingFang TC") or a PostScript name.
     public func font(videoHeight: CGFloat) -> NSFont {
         let size = max(8, videoHeight * fontScale)
-        if let font = NSFontManager.shared.font(withFamily: fontName, traits: .boldFontMask, weight: 9, size: size) {
+        if let face = FontFaces.resolve(family: fontName, weight: fontWeight, face: fontFace),
+           let font = NSFont(name: face.postScriptName, size: size) {
             return font
         }
         return NSFont(name: fontName, size: size) ?? .boldSystemFont(ofSize: size)
@@ -125,6 +139,73 @@ public struct SubtitleStyle: Equatable, Codable, Sendable {
             attributes[.strokeWidth] = outlineScale * 200
         }
         return NSAttributedString(string: text, attributes: attributes)
+    }
+}
+
+/// The weights a font family comes in.
+public enum FontFaces {
+    public struct Face: Equatable, Identifiable, Sendable {
+        public var postScriptName: String
+        /// The face's own name for its style, e.g. "Semibold".
+        public var styleName: String
+        /// AppKit's 0–15 scale (5 is regular, 9 is bold).
+        public var weight: Int
+        public var id: String { postScriptName }
+    }
+
+    /// The upright faces of a family, lightest first. Italic and condensed variants are
+    /// left out unless the family has nothing else.
+    public static func faces(ofFamily family: String) -> [Face] {
+        cache.faces(family)
+    }
+
+    /// The face to draw with: `face` if the family has it, otherwise the closest weight.
+    public static func resolve(family: String, weight: Int, face: String?) -> Face? {
+        let faces = faces(ofFamily: family)
+        if let face, let exact = faces.first(where: { $0.postScriptName == face }) { return exact }
+        // Ties go to the heavier face, which reads better over video.
+        return faces.min { (abs($0.weight - weight), -$0.weight) < (abs($1.weight - weight), -$1.weight) }
+    }
+
+    private static let cache = Cache()
+
+    private final class Cache: @unchecked Sendable {
+        private let lock = NSLock()
+        private var known: [String: [Face]] = [:]
+
+        func faces(_ family: String) -> [Face] {
+            lock.lock()
+            defer { lock.unlock() }
+            if let faces = known[family] { return faces }
+            let faces = Self.load(family)
+            known[family] = faces
+            return faces
+        }
+
+        private static func load(_ family: String) -> [Face] {
+            struct Member {
+                var face: Face
+                var traits: Int
+                /// Core Text's finer weight (-1…1), which tells apart faces AppKit ranks the same.
+                var fineWeight: Double
+            }
+            let members: [Member] = (NSFontManager.shared.availableMembers(ofFontFamily: family) ?? []).compactMap { entry in
+                guard entry.count >= 4, let name = entry[0] as? String, let style = entry[1] as? String,
+                      let weight = entry[2] as? Int, let traits = entry[3] as? Int else { return nil }
+                let descriptor = NSFontDescriptor(name: name, size: 12)
+                let fine = ((descriptor.object(forKey: .traits) as? [NSFontDescriptor.TraitKey: Any])?[.weight] as? Double) ?? 0
+                return Member(face: Face(postScriptName: name, styleName: style, weight: weight), traits: traits, fineWeight: fine)
+            }
+            let italic = Int(NSFontTraitMask.italicFontMask.rawValue)
+            let squeezed = Int(NSFontTraitMask.narrowFontMask.rawValue | NSFontTraitMask.expandedFontMask.rawValue
+                | NSFontTraitMask.condensedFontMask.rawValue | NSFontTraitMask.compressedFontMask.rawValue)
+            var chosen = members.filter { $0.traits & (italic | squeezed) == 0 }
+            if chosen.isEmpty { chosen = members.filter { $0.traits & italic == 0 } }
+            if chosen.isEmpty { chosen = members }
+            return chosen
+                .sorted { ($0.face.weight, $0.fineWeight) < ($1.face.weight, $1.fineWeight) }
+                .map { $0.face }
+        }
     }
 }
 

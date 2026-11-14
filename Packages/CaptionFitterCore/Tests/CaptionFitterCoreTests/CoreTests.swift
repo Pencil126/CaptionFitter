@@ -505,3 +505,29 @@ private func words(_ text: String, start: Double = 0, step: Double = 0.5) -> [Ti
         #expect(document.lines[0].start == 0 && document.lines[0].end == 2)
     }
 }
+
+@Suite struct FontFaceTests {
+    @Test func facesAreUprightAndOrderedByWeight() {
+        let faces = FontFaces.faces(ofFamily: "Helvetica Neue")
+        #expect(faces.count >= 4)
+        #expect(faces.map(\.weight) == faces.map(\.weight).sorted())
+        #expect(!faces.contains { $0.postScriptName.contains("Italic") || $0.postScriptName.contains("Condensed") })
+    }
+
+    @Test func picksTheChosenFaceOrTheNearestWeight() {
+        #expect(FontFaces.resolve(family: "Helvetica Neue", weight: 9, face: nil)?.postScriptName == "HelveticaNeue-Bold")
+        #expect(FontFaces.resolve(family: "Helvetica Neue", weight: 9, face: "HelveticaNeue-Light")?.postScriptName == "HelveticaNeue-Light")
+        // A face from another family is ignored; the weight decides.
+        #expect(FontFaces.resolve(family: "Helvetica Neue", weight: 5, face: "ArialMT")?.postScriptName == "HelveticaNeue")
+        // PingFang has no bold; the heaviest it has is used.
+        #expect(FontFaces.resolve(family: "PingFang TC", weight: 9, face: nil)?.postScriptName == "PingFangTC-Semibold")
+        #expect(FontFaces.resolve(family: "No Such Family", weight: 9, face: nil) == nil)
+    }
+
+    @Test func styleUsesTheChosenWeight() {
+        let light = SubtitleStyle(fontName: "Helvetica Neue", fontWeight: 3).font(videoHeight: 720)
+        let bold = SubtitleStyle(fontName: "Helvetica Neue").font(videoHeight: 720)
+        #expect(light.fontName != bold.fontName)
+        #expect(bold.fontName == "HelveticaNeue-Bold")
+    }
+}

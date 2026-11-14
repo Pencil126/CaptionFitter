@@ -170,15 +170,36 @@ final class PlayerSurfaceView: NSView {
 /// Appearance controls shared by the preview and the burned-in export.
 struct StylePanel: View {
     @Environment(AppModel.self) private var model
-
-    private static let families: [String] = NSFontManager.shared.availableFontFamilies.filter { !$0.hasPrefix(".") }
+    @State private var showFonts = false
 
     var body: some View {
         @Bindable var model = model
+        let faces = FontFaces.faces(ofFamily: model.style.fontName)
 
         Form {
-            Picker("字型", selection: $model.style.fontName) {
-                ForEach(Self.families, id: \.self) { Text($0).tag($0) }
+            LabeledContent("字型") {
+                Button {
+                    showFonts.toggle()
+                } label: {
+                    HStack {
+                        Text(FontCatalog.displayName(for: model.style.fontName))
+                            .lineLimit(1)
+                        Spacer(minLength: 4)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .popover(isPresented: $showFonts, arrowEdge: .leading) {
+                    FontPicker(selection: $model.style.fontName)
+                }
+            }
+            // Only for fonts that come in more than one weight.
+            if faces.count > 1 {
+                Picker("字重", selection: face(among: faces)) {
+                    ForEach(faces) { Text(FontCatalog.weightLabel($0.styleName)).tag($0.postScriptName) }
+                }
             }
             LabeledContent("大小") {
                 slider($model.style.fontScale, in: 0.03...0.12, value: percent(model.style.fontScale, digits: 1))
@@ -215,6 +236,22 @@ struct StylePanel: View {
         }
         .padding(16)
         .frame(width: 360)
+    }
+
+    /// The face in use, by PostScript name. Choosing one also records its weight, so the
+    /// closest weight carries over when the font is changed.
+    private func face(among faces: [FontFaces.Face]) -> Binding<String> {
+        Binding(
+            get: {
+                let style = model.style
+                return FontFaces.resolve(family: style.fontName, weight: style.fontWeight, face: style.fontFace)?.postScriptName ?? ""
+            },
+            set: { name in
+                guard let face = faces.first(where: { $0.postScriptName == name }) else { return }
+                model.style.fontFace = face.postScriptName
+                model.style.fontWeight = face.weight
+            }
+        )
     }
 
     /// A slider with its current value shown beside it.
