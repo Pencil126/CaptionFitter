@@ -4,6 +4,7 @@ import SwiftUI
 /// The subtitle list with timing and text editing.
 struct SubtitleEditor: View {
     @Environment(AppModel.self) private var model
+    @Environment(ModelManager.self) private var models
     @Environment(\.undoManager) private var undoManager
     @State private var showShift = false
     @State private var shiftSeconds = 0.0
@@ -15,7 +16,7 @@ struct SubtitleEditor: View {
                 .padding(.vertical, 6)
             Divider()
 
-            if model.document.lines.isEmpty {
+            if model.document.lines.isEmpty, model.openRegions.isEmpty {
                 ContentUnavailableView(
                     "還沒有字幕",
                     systemImage: "captions.bubble",
@@ -121,9 +122,15 @@ struct SubtitleEditor: View {
         let playingID = model.currentLine?.id
         return ScrollViewReader { proxy in
             List(selection: $model.selection) {
-                ForEach(Array(model.document.lines.enumerated()), id: \.element.id) { index, line in
-                    SubtitleRow(index: index + 1, line: line, isPlaying: line.id == playingID)
-                        .tag(line.id)
+                ForEach(rows) { row in
+                    switch row {
+                    case .line(let index, let line):
+                        SubtitleRow(index: index, line: line, isPlaying: line.id == playingID)
+                            .tag(line.id)
+                    case .region(let region):
+                        UnscriptedRegionRow(region: region)
+                            .selectionDisabled()
+                    }
                 }
             }
             .listStyle(.inset(alternatesRowBackgrounds: true))
@@ -140,6 +147,89 @@ struct SubtitleEditor: View {
             }
             .onDeleteCommand { model.deleteSelected(undoManager: undoManager) }
         }
+    }
+}
+
+/// One row of the list: a subtitle, or a hint about speech the script does not cover.
+private enum EditorRow: Identifiable {
+    case line(index: Int, SubtitleLine)
+    case region(UnscriptedRegion)
+
+    var id: UUID {
+        switch self {
+        case .line(_, let line): return line.id
+        case .region(let region): return region.id
+        }
+    }
+}
+
+extension SubtitleEditor {
+    /// Subtitles in order, with each hint placed where its passage falls in time.
+    fileprivate var rows: [EditorRow] {
+        var pending = model.openRegions.sorted { $0.range.lowerBound < $1.range.lowerBound }[...]
+        var rows: [EditorRow] = []
+        for (index, line) in model.document.lines.enumerated() {
+            // Lines not found in the audio have no time of their own; keep them above the hint.
+            while let region = pending.first, line.duration > 0, line.start >= region.range.lowerBound {
+                rows.append(.region(region))
+                pending.removeFirst()
+            }
+            rows.append(.line(index: index + 1, line))
+        }
+        rows.append(contentsOf: pending.map { .region($0) })
+        return rows
+    }
+}
+
+/// Tells the user about speech that is not in the script and offers to transcribe it.
+private struct UnscriptedRegionRow: View {
+    @Environment(AppModel.self) private var model
+    @Environment(ModelManager.self) private var models
+    @Environment(\.undoManager) private var undoManager
+    let region: UnscriptedRegion
+
+    var body: some View {
+        let seconds = Int((region.range.upperBound - region.range.lowerBound).rounded())
+        HStack(spacing: 10) {
+            Image(systemName: "text.bubble")
+                .foregroundStyle(.secondary)
+                .frame(width: 12)
+            Text("\(TimeText.string(region.range.lowerBound)) → \(TimeText.string(region.range.upperBound))")
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+            Text("這裡有 \(seconds) 秒文稿以外的講話")
+                .foregroundStyle(.secondary)
+            Spacer()
+            if model.fillingRegionID == region.id {
+                ProgressView(value: model.workProgress)
+                    .frame(width: 80)
+                Button("取消") { model.cancelWork() }
+            } else {
+                Button {
+                    model.seek(to: region.range.lowerBound)
+                    if !model.isPlaying { model.togglePlayback() }
+                } label: {
+                    Label("聽這一段", systemImage: "play.circle")
+                }
+                Button {
+                    model.fillRegion(region, using: models, undoManager: undoManager)
+                } label: {
+                    Label("補上字幕", systemImage: "wand.and.stars")
+                }
+                .disabled(model.isWorking)
+                .help("自動聽寫這一段並加上字幕，結果可能有錯字，請再檢查")
+                Button {
+                    model.dismissRegion(region.id)
+                } label: {
+                    Image(systemName: "xmark")
+                }
+                .disabled(model.isWorking)
+                .help("這一段不需要字幕")
+            }
+        }
+        .labelStyle(.titleAndIcon)
+        .buttonStyle(.borderless)
+        .padding(.vertical, 2)
     }
 }
 
@@ -190,7 +280,7 @@ private struct SubtitleRow: View {
     private var confidenceColor: Color {
         switch line.confidence {
         case .good, .manual: return .clear
-        case .partial: return .orange
+        case .partial, .transcribed: return .orange
         case .interpolated: return .red
         }
     }
@@ -201,6 +291,7 @@ private struct SubtitleRow: View {
         case .manual: return "已手動調整"
         case .partial: return "不確定這一行的時間是否正確，建議播放檢查"
         case .interpolated: return "在聲音中找不到這一行。設定時間之前，它不會顯示也不會輸出"
+        case .transcribed: return "這一行不在文稿中，是自動聽寫的，可能有錯字"
         }
     }
 }

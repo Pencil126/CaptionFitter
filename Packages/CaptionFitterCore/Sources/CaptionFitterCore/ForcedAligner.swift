@@ -18,7 +18,7 @@ extension WhisperRecognizer {
         language: SpeechLanguage,
         crossCheck: Bool = true,
         progress: @escaping @Sendable (Double) -> Void
-    ) async throws -> [SubtitleLine] {
+    ) async throws -> Alignment {
         let lines = scriptLines.map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
         guard !lines.isEmpty else { throw AlignerError.emptyScript }
         guard let tokenizer = whisperKit.tokenizer else { throw AlignerError.noSpeechFound }
@@ -319,7 +319,29 @@ extension WhisperRecognizer {
         forcedProgress(1)
 
         Self.review(&result, paces: paces, heard: heard)
-        return Self.assemble(result, lines: lines, duration: duration)
+        return Alignment(lines: Self.assemble(result, lines: lines, duration: duration), unscriptedRegions: barriers)
+    }
+
+    /// Transcribes one passage the script does not cover (see `Alignment.unscriptedRegions`)
+    /// into subtitles, listening to it with the same care as a full transcription.
+    public func transcribe(
+        region: ClosedRange<Double>,
+        samples: [Float],
+        language: SpeechLanguage,
+        maxWidth: Double,
+        progress: @escaping @Sendable (Double) -> Void
+    ) async throws -> [SubtitleLine] {
+        let rate = AudioExtractor.sampleRate
+        // A little audio on either side keeps the first and last words from being cut.
+        let from = max(0, region.lowerBound - 0.5)
+        let first = min(samples.count, Int(from * rate))
+        let last = min(samples.count, Int((region.upperBound + 0.5) * rate))
+        guard last > first else { return [] }
+        let recognition = try await recognize(samples: Array(samples[first..<last]), language: language, progress: progress)
+        return CaptionBuilder.transcribe(
+            recognition, offset: from, within: region,
+            maxWidth: maxWidth, traditionalChinese: language.prefersTraditionalChinese
+        )
     }
 
     /// Marks lines whose timing deserves a look, and clears the mark where the free

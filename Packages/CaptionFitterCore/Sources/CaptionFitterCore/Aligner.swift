@@ -62,6 +62,18 @@ public struct Recognition: Equatable, Sendable {
     public var words: [TimedWord] { segments.flatMap(\.words) }
 }
 
+/// The result of fitting a script to audio.
+public struct Alignment: Equatable, Sendable {
+    public var lines: [SubtitleLine]
+    /// Passages of clear speech that are not in the script, and so have no subtitles.
+    public var unscriptedRegions: [ClosedRange<Double>]
+
+    public init(lines: [SubtitleLine], unscriptedRegions: [ClosedRange<Double>] = []) {
+        self.lines = lines
+        self.unscriptedRegions = unscriptedRegions
+    }
+}
+
 /// Produces timed words from audio. Hidden behind a protocol so the alignment
 /// strategy can be swapped without touching the rest of the app.
 public protocol SpeechRecognizing: Sendable {
@@ -252,6 +264,24 @@ public enum CaptionBuilder {
             lines = lines.map(Self.toTraditionalChinese)
         }
         return SequenceAligner.align(scriptLines: lines, words: recognition.words, mediaDuration: mediaDuration)
+    }
+
+    /// Subtitles for the speech in one passage that the script does not cover.
+    /// - Parameters:
+    ///   - recognition: What was heard in an excerpt of the audio; its times count from `offset`.
+    ///   - region: The passage to fill. Nothing is placed outside it.
+    public static func transcribe(
+        _ recognition: Recognition, offset: Double, within region: ClosedRange<Double>,
+        maxWidth: Double, traditionalChinese: Bool
+    ) -> [SubtitleLine] {
+        guard let lines = try? transcribe(recognition, maxWidth: maxWidth, traditionalChinese: traditionalChinese, mediaDuration: nil) else { return [] }
+        return lines.compactMap { line in
+            guard line.confidence != .interpolated else { return nil }
+            let start = max(line.start + offset, region.lowerBound)
+            let end = min(line.end + offset, region.upperBound)
+            guard end - start >= SubtitleDocument.minimumDuration else { return nil }
+            return SubtitleLine(start: start, end: end, text: line.text, confidence: .transcribed)
+        }
     }
 
     /// The model usually writes Chinese in Simplified characters with ASCII punctuation;

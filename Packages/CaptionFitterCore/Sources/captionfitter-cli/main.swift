@@ -26,6 +26,7 @@ let usage = """
   --words            另外印出辨識到的逐字時間
   --match            align 改用「先轉錄再比對文字」的舊做法
   --no-cross-check   align 不做自由轉錄的交叉檢查（較快，但文稿以外的講話可能被配上字幕）
+  --fill-unscripted  align 把偵測到的「文稿以外的講話」自動轉錄並補成字幕
 """
 
 var arguments = Array(CommandLine.arguments.dropFirst())
@@ -127,8 +128,20 @@ do {
             let duration = try await AudioExtractor.duration(of: media)
             let samples = try await AudioExtractor.samples(from: media)
             let started = Date()
-            let lines = try await engine.align(scriptLines: scriptLines, samples: samples, language: language, crossCheck: !flag("--no-cross-check")) { _ in }
+            let fill = flag("--fill-unscripted")
+            let alignment = try await engine.align(scriptLines: scriptLines, samples: samples, language: language, crossCheck: !flag("--no-cross-check")) { _ in }
             print(String(format: "對齊完成，耗時 %.1f 秒", Date().timeIntervalSince(started)))
+            var document = SubtitleDocument(lines: alignment.lines)
+            for region in alignment.unscriptedRegions {
+                print(String(format: "文稿以外的講話：%.1f–%.1f 秒", region.lowerBound, region.upperBound))
+                guard fill else { continue }
+                let fillStarted = Date()
+                let added = try await engine.transcribe(region: region, samples: samples, language: language, maxWidth: wrap ?? 16) { _ in }
+                document.insert(added)
+                print(String(format: "  補上 %d 行，耗時 %.1f 秒", added.count, Date().timeIntervalSince(fillStarted)))
+                for line in added { print(String(format: "  %7.2f %7.2f  %@", line.start, line.end, line.text)) }
+            }
+            let lines = document.lines
             let destination = out.map { URL(fileURLWithPath: $0) } ?? media.deletingPathExtension().appendingPathExtension("srt")
             try SRTWriter.write(lines, to: destination)
             printSummary(lines, duration: duration)

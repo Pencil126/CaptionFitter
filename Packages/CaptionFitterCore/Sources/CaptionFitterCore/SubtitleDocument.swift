@@ -10,6 +10,8 @@ public enum LineConfidence: String, Codable, Sendable {
     case interpolated
     /// The line was created or retimed by hand.
     case manual
+    /// The line is not from the script: it was transcribed from speech the script does not cover.
+    case transcribed
 }
 
 public struct SubtitleLine: Identifiable, Equatable, Codable, Sendable {
@@ -105,6 +107,17 @@ public struct SubtitleDocument: Equatable, Codable, Sendable {
         lines.append(line)
         sort()
         return line.id
+    }
+
+    /// Adds already timed lines, keeping the list in time order.
+    public mutating func insert(_ newLines: [SubtitleLine]) {
+        lines.append(contentsOf: newLines)
+        sort()
+    }
+
+    /// Whether any visible subtitle sits inside `range`.
+    public func hasLines(in range: ClosedRange<Double>) -> Bool {
+        lines.contains { $0.duration > 0 && range.contains(($0.start + $0.end) / 2) }
     }
 
     public mutating func delete(_ id: SubtitleLine.ID) {

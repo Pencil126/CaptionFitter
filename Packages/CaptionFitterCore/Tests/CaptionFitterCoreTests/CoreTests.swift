@@ -403,3 +403,49 @@ private func words(_ text: String, start: Double = 0, step: Double = 0.5) -> [Ti
         #expect(lines[3] == nil)
     }
 }
+
+@Suite struct UnscriptedSpeechTests {
+    private func recognition(_ text: String, start: Double, step: Double = 0.2) -> Recognition {
+        let words = text.enumerated().map { index, character in
+            TimedWord(text: String(character), start: start + Double(index) * step, end: start + Double(index + 1) * step)
+        }
+        return Recognition(segments: [RecognizedSegment(start: start, end: start + Double(text.count) * step, text: text, words: words)], language: "zh")
+    }
+
+    @Test func transcribedLinesAreShiftedAndMarked() {
+        let lines = CaptionBuilder.transcribe(
+            recognition("大家好谢谢你们", start: 1), offset: 100, within: 100...110, maxWidth: 16, traditionalChinese: true
+        )
+        #expect(lines.map(\.text) == ["大家好謝謝你們"])
+        #expect(abs(lines[0].start - 101) < 0.01)
+        // The last word ends at 102.4; a line may linger briefly after it.
+        #expect(lines[0].end >= 102.39 && lines[0].end <= 103)
+        #expect(lines[0].confidence == .transcribed)
+    }
+
+    @Test func transcribedLinesStayInsideTheRegion() {
+        // Heard at 99.5–100.9 and 111–112.4; the region is 100–110.
+        let early = CaptionBuilder.transcribe(recognition("大家好谢谢你们", start: 0.5), offset: 99, within: 100...110, maxWidth: 16, traditionalChinese: false)
+        #expect(early.count == 1)
+        #expect(early[0].start == 100)
+        let late = CaptionBuilder.transcribe(recognition("大家好谢谢你们", start: 12), offset: 99, within: 100...110, maxWidth: 16, traditionalChinese: false)
+        #expect(late.isEmpty)
+    }
+
+    @Test func nothingHeardGivesNoLines() {
+        let empty = Recognition(segments: [], language: "zh")
+        #expect(CaptionBuilder.transcribe(empty, offset: 0, within: 0...10, maxWidth: 16, traditionalChinese: false).isEmpty)
+    }
+
+    @Test func insertedLinesAreSortedAndFound() {
+        var document = SubtitleDocument(lines: [
+            SubtitleLine(start: 0, end: 2, text: "a", confidence: .good),
+            SubtitleLine(start: 2, end: 2, text: "missing", confidence: .interpolated),
+            SubtitleLine(start: 20, end: 22, text: "b", confidence: .good),
+        ])
+        #expect(!document.hasLines(in: 1.5...12))
+        document.insert([SubtitleLine(start: 6, end: 8, text: "y", confidence: .transcribed), SubtitleLine(start: 4, end: 6, text: "x", confidence: .transcribed)])
+        #expect(document.lines.map(\.text) == ["a", "missing", "x", "y", "b"])
+        #expect(document.hasLines(in: 3...12))
+    }
+}
