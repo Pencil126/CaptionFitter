@@ -94,6 +94,7 @@ final class AppModel {
 
     private var workTask: Task<Void, Never>?
     private var recognizer: (modelID: String, engine: WhisperRecognizer)?
+    private var alignmentCount = 0
     private var lastCoalesceKey: String?
     private var timeObserver: Any?
     private var rateObservation: NSKeyValueObservation?
@@ -312,6 +313,7 @@ final class AppModel {
                 workTask = nil
             }
             do {
+                let loadedModel = recognizer?.modelID != modelID
                 let engine = try await loadEngine(modelID, from: store)
                 try Task.checkCancellation()
 
@@ -338,9 +340,20 @@ final class AppModel {
                     // The model reads the script against the audio, which also works for
                     // singing and noisy recordings where free transcription gets the words wrong.
                     workTitle = "對齊字幕…"
+                    let started = Date()
                     let alignment = try await engine.align(scriptLines: lines, samples: samples, language: language, progress: reportProgress)
                     result = alignment.lines
                     regions = alignment.unscriptedRegions
+
+                    alignmentCount += 1
+                    let run = AlignmentLog.Run(
+                        ordinal: alignmentCount, loadedModel: loadedModel, modelID: modelID,
+                        mediaName: url.lastPathComponent, sampleCount: samples.count,
+                        audioChecksum: samples.reduce(0) { $0 + Double(abs($1)) },
+                        language: language.id, scriptLines: lines,
+                        seconds: Date().timeIntervalSince(started), alignment: alignment
+                    )
+                    Task.detached(priority: .utility) { AlignmentLog.write(run) }
                 }
                 try Task.checkCancellation()
 
@@ -402,7 +415,7 @@ final class AppModel {
                 let engine = try await loadEngine(modelID, from: store)
                 try Task.checkCancellation()
 
-                workTitle = "聽寫這一段講話…"
+                workTitle = "辨識這一段講話…"
                 let samples = try await Task.detached { try await AudioExtractor.samples(from: url) }.value
                 try Task.checkCancellation()
                 workProgress = 0
@@ -415,10 +428,10 @@ final class AppModel {
                 try Task.checkCancellation()
 
                 guard !lines.isEmpty else {
-                    errorMessage = "這一段沒有聽寫出文字，可以改用「新增」手動加上字幕。"
+                    errorMessage = "這一段沒有辨識出文字，可以改用「新增」手動加上字幕。"
                     return
                 }
-                edit("補上字幕", undoManager: undoManager) { $0.insert(lines) }
+                edit("辨識字幕", undoManager: undoManager) { $0.insert(lines) }
             } catch is CancellationError {
                 // Cancelled by the user; nothing was added.
             } catch {

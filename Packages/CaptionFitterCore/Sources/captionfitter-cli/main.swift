@@ -130,7 +130,14 @@ do {
             let samples = try await AudioExtractor.samples(from: media)
             let started = Date()
             let fill = flag("--fill-unscripted")
-            let alignment = try await engine.align(scriptLines: scriptLines, samples: samples, language: language, crossCheck: !flag("--no-cross-check")) { _ in }
+            let crossCheck = !flag("--no-cross-check")
+            // Diagnostic: align again in the same process, to compare a first run with later ones.
+            for round in 1..<(option("--repeat").flatMap(Int.init) ?? 1) {
+                let extra = try await engine.align(scriptLines: scriptLines, samples: samples, language: language, crossCheck: crossCheck) { _ in }
+                let regions = extra.unscriptedRegions.map { String(format: "%.1f–%.1f", $0.lowerBound, $0.upperBound) }
+                print("第 \(round) 次：逐字稿以外的講話 \(regions.isEmpty ? "無" : regions.joined(separator: "、"))")
+            }
+            let alignment = try await engine.align(scriptLines: scriptLines, samples: samples, language: language, crossCheck: crossCheck) { _ in }
             print(String(format: "對齊完成，耗時 %.1f 秒", Date().timeIntervalSince(started)))
             var document = SubtitleDocument(lines: alignment.lines)
             for region in alignment.unscriptedRegions {

@@ -189,18 +189,33 @@ private struct UnscriptedRegionRow: View {
     @Environment(\.undoManager) private var undoManager
     let region: UnscriptedRegion
 
+    /// The multicolour sweep commonly used to mark something as found or made by AI.
+    private static let gradient = LinearGradient(
+        colors: [
+            Color(red: 0.25, green: 0.52, blue: 1.0),
+            Color(red: 0.62, green: 0.36, blue: 0.98),
+            Color(red: 0.98, green: 0.38, blue: 0.66),
+            Color(red: 1.0, green: 0.62, blue: 0.3),
+        ],
+        startPoint: .leading, endPoint: .trailing
+    )
+
     var body: some View {
         let seconds = Int((region.range.upperBound - region.range.lowerBound).rounded())
         HStack(spacing: 10) {
-            Image(systemName: "text.bubble")
-                .foregroundStyle(.secondary)
-                .frame(width: 12)
+            Image(systemName: "sparkles")
+                .foregroundStyle(Self.gradient)
+                .frame(width: 16)
             Text("\(TimeText.string(region.range.lowerBound)) → \(TimeText.string(region.range.upperBound))")
-                .foregroundStyle(.secondary)
                 .monospacedDigit()
+                .lineLimit(1)
+                .fixedSize()
+            // The row is tall enough for the sentence to wrap when the window is narrow.
             Text("這裡有 \(seconds) 秒逐字稿以外的講話")
-                .foregroundStyle(.secondary)
-            Spacer()
+                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
+                .layoutPriority(-1)
+            Spacer(minLength: 4)
             if model.fillingRegionID == region.id {
                 ProgressView(value: model.workProgress)
                     .frame(width: 80)
@@ -210,15 +225,16 @@ private struct UnscriptedRegionRow: View {
                     model.seek(to: region.range.lowerBound)
                     if !model.isPlaying { model.togglePlayback() }
                 } label: {
-                    Label("聽這一段", systemImage: "play.circle")
+                    Label("查看", systemImage: "play.circle")
                 }
+                .help("跳到這一段並播放")
                 Button {
                     model.fillRegion(region, using: models, undoManager: undoManager)
                 } label: {
-                    Label("補上字幕", systemImage: "wand.and.stars")
+                    Label("辨識字幕", systemImage: "wand.and.stars")
                 }
                 .disabled(model.isWorking)
-                .help("自動聽寫這一段並加上字幕，結果可能有錯字，請再檢查")
+                .help("自動辨識這一段的講話並加上字幕，結果可能有錯字，請再檢查")
                 Button {
                     model.dismissRegion(region.id)
                 } label: {
@@ -230,7 +246,16 @@ private struct UnscriptedRegionRow: View {
         }
         .labelStyle(.titleAndIcon)
         .buttonStyle(.borderless)
-        .padding(.vertical, 2)
+        .fixedSize(horizontal: false, vertical: true)
+        // About three times the height of a subtitle row, so the hint stands apart from the lines around it.
+        .frame(minHeight: 68)
+        .background {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Self.gradient.opacity(0.22))
+                .overlay { RoundedRectangle(cornerRadius: 8).strokeBorder(Self.gradient.opacity(0.7), lineWidth: 1) }
+                .padding(.horizontal, -6)
+                .padding(.vertical, 2)
+        }
     }
 }
 

@@ -67,10 +67,14 @@ public struct Alignment: Equatable, Sendable {
     public var lines: [SubtitleLine]
     /// Passages of clear speech that are not in the script, and so have no subtitles.
     public var unscriptedRegions: [ClosedRange<Double>]
+    /// What the model heard when listening freely, which the regions above were worked out
+    /// from. Empty when the cross-check was off. Kept for diagnosing detection problems.
+    public var heard: [RecognizedSegment]
 
-    public init(lines: [SubtitleLine], unscriptedRegions: [ClosedRange<Double>] = []) {
+    public init(lines: [SubtitleLine], unscriptedRegions: [ClosedRange<Double>] = [], heard: [RecognizedSegment] = []) {
         self.lines = lines
         self.unscriptedRegions = unscriptedRegions
+        self.heard = heard
     }
 }
 

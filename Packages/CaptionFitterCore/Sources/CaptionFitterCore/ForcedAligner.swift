@@ -319,7 +319,11 @@ extension WhisperRecognizer {
         forcedProgress(1)
 
         Self.review(&result, paces: paces, heard: heard)
-        return Alignment(lines: Self.assemble(result, lines: lines, duration: duration), unscriptedRegions: barriers)
+        return Alignment(
+            lines: Self.assemble(result, lines: lines, duration: duration),
+            unscriptedRegions: barriers,
+            heard: heard?.segments ?? []
+        )
     }
 
     /// Transcribes one passage the script does not cover (see `Alignment.unscriptedRegions`)
