@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    branches: ["release-v*"]
+
+permissions:
+  contents: write
+
+# A newer push to the same release branch supersedes the run in progress.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Derive version from branch name
+        run: echo "VERSION=${GITHUB_REF_NAME#release-v}" >> "$GITHUB_ENV"
+
+      - name: Test core package
+        run: swift test --package-path Packages/CaptionFitterCore
+
+      - name: Build
+        run: >
+          xcodebuild -project CaptionFitter.xcodeproj -scheme CaptionFitter
+          -configuration Release -derivedDataPath .build/xcode build
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Package
+        run: |
+          mkdir -p dmg-stage
+          ditto .build/xcode/Build/Products/Release/CaptionFitter.app dmg-stage/CaptionFitter.app
+          create-dmg --volname "CaptionFitter" \
+            --window-size 600 400 --icon-size 112 \
+            --icon "CaptionFitter.app" 160 200 \
+            --app-drop-link 440 200 \
+            "CaptionFitter-$VERSION.dmg" dmg-stage/
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v$VERSION"
+          # A draft from an earlier push to this branch is stale; replace it.
+          if [ "$(gh release view "$TAG" --json isDraft --jq .isDraft 2>/dev/null)" = "true" ]; then
+            gh release delete "$TAG" --yes
+          fi
+          gh release create "$TAG" "CaptionFitter-$VERSION.dmg" \
+            --target "$GITHUB_SHA" --draft --generate-notes \
+            --title "CaptionFitter $VERSION"
