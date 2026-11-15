@@ -1,7 +1,7 @@
 import Foundation
 import WhisperKit
 
-/// A speech model that can be used on this Mac, downloaded or not.
+/// A speech model that can be used on this device, downloaded or not.
 public struct SpeechModel: Identifiable, Equatable, Sendable {
     public enum State: Equatable, Sendable {
         case notDownloaded
@@ -15,9 +15,9 @@ public struct SpeechModel: Identifiable, Equatable, Sendable {
     public var state: State
     /// Bytes on disk (downloaded / incomplete models only).
     public var sizeOnDisk: Int64?
-    /// Suggested for this Mac by the model publisher.
+    /// Suggested for this device by the model publisher.
     public var isRecommended: Bool
-    /// The publisher's default choice for this Mac.
+    /// The publisher's default choice for this device.
     public var isDefaultForDevice: Bool
 
     public var displayName: String {
@@ -29,7 +29,7 @@ public struct SpeechModel: Identifiable, Equatable, Sendable {
     }
 }
 
-/// Lists, downloads and deletes the speech models stored on this Mac.
+/// Lists, downloads and deletes the speech models stored on this device.
 public struct ModelStore: Sendable {
     public static let repository = "argmaxinc/whisperkit-coreml"
     private static let completionMarker = ".captionfitter-complete"
@@ -43,9 +43,7 @@ public struct ModelStore: Sendable {
 
     /// `~/Library/Application Support/CaptionFitter/Models` (inside the container when sandboxed).
     public static func defaultBaseFolder() -> URL {
-        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support")
-        return support.appendingPathComponent("CaptionFitter/Models", isDirectory: true)
+        URL.applicationSupportDirectory.appendingPathComponent("CaptionFitter/Models", isDirectory: true)
     }
 
     /// Where model folders live, following the layout the downloader uses.
@@ -80,7 +78,7 @@ public struct ModelStore: Sendable {
         .sorted { $0.id < $1.id }
     }
 
-    /// Local models merged with the list of models available for this Mac.
+    /// Local models merged with the list of models available for this device.
     /// Falls back to a built-in list when offline.
     public func allModels() async -> [SpeechModel] {
         let support = await WhisperKit.recommendedRemoteModels(from: Self.repository, downloadBase: baseFolder)

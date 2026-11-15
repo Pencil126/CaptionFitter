@@ -1,7 +1,16 @@
-import AppKit
 import AVFoundation
 import CoreImage
 import CoreText
+#if os(macOS)
+import AppKit
+/// The platform's own font class, which Core Text reads from attributed strings.
+public typealias PlatformFont = NSFont
+typealias PlatformColor = NSColor
+#else
+import UIKit
+public typealias PlatformFont = UIFont
+typealias PlatformColor = UIColor
+#endif
 
 public struct RGBAColor: Equatable, Codable, Sendable {
     public var red: Double
@@ -112,13 +121,21 @@ public struct SubtitleStyle: Equatable, Codable, Sendable {
     }
 
     /// `fontName` may be a family name ("PingFang TC") or a PostScript name.
-    public func font(videoHeight: CGFloat) -> NSFont {
+    public func font(videoHeight: CGFloat) -> PlatformFont {
         let size = max(8, videoHeight * fontScale)
         if let face = FontFaces.resolve(family: fontName, weight: fontWeight, face: fontFace),
-           let font = NSFont(name: face.postScriptName, size: size) {
+           let font = PlatformFont(name: face.postScriptName, size: size) {
             return font
         }
-        return NSFont(name: fontName, size: size) ?? .boldSystemFont(ofSize: size)
+        return PlatformFont(name: fontName, size: size) ?? .boldSystemFont(ofSize: size)
+    }
+
+    private static func attributeColor(_ color: RGBAColor, fallback: PlatformColor) -> PlatformColor {
+        #if os(macOS)
+        return NSColor(cgColor: color.cgColor) ?? fallback
+        #else
+        return UIColor(cgColor: color.cgColor)
+        #endif
     }
 
     /// The styled text for one drawing pass. The outline pass strokes the glyph edges and is
@@ -130,10 +147,10 @@ public struct SubtitleStyle: Equatable, Codable, Sendable {
         var attributes: [NSAttributedString.Key: Any] = [
             .font: font(videoHeight: videoHeight),
             .paragraphStyle: paragraph,
-            .foregroundColor: NSColor(cgColor: textColor.cgColor) ?? .white,
+            .foregroundColor: Self.attributeColor(textColor, fallback: .white),
         ]
         if outlinePass {
-            attributes[.strokeColor] = NSColor(cgColor: outlineColor.cgColor) ?? .black
+            attributes[.strokeColor] = Self.attributeColor(outlineColor, fallback: .black)
             // A positive width strokes only. It is a percentage of the font size and the stroke is
             // centred on the glyph edge, so double it to get the requested thickness outside.
             attributes[.strokeWidth] = outlineScale * 200
@@ -148,7 +165,7 @@ public enum FontFaces {
         public var postScriptName: String
         /// The face's own name for its style, e.g. "Semibold".
         public var styleName: String
-        /// AppKit's 0–15 scale (5 is regular, 9 is bold).
+        /// AppKit's 0–15 scale (5 is regular, 9 is bold), on every platform.
         public var weight: Int
         public var id: String { postScriptName }
     }
@@ -183,28 +200,86 @@ public enum FontFaces {
         }
 
         private static func load(_ family: String) -> [Face] {
-            struct Member {
-                var face: Face
-                var traits: Int
-                /// Core Text's finer weight (-1…1), which tells apart faces AppKit ranks the same.
-                var fineWeight: Double
-            }
-            let members: [Member] = (NSFontManager.shared.availableMembers(ofFontFamily: family) ?? []).compactMap { entry in
-                guard entry.count >= 4, let name = entry[0] as? String, let style = entry[1] as? String,
-                      let weight = entry[2] as? Int, let traits = entry[3] as? Int else { return nil }
-                let descriptor = NSFontDescriptor(name: name, size: 12)
-                let fine = ((descriptor.object(forKey: .traits) as? [NSFontDescriptor.TraitKey: Any])?[.weight] as? Double) ?? 0
-                return Member(face: Face(postScriptName: name, styleName: style, weight: weight), traits: traits, fineWeight: fine)
-            }
-            let italic = Int(NSFontTraitMask.italicFontMask.rawValue)
-            let squeezed = Int(NSFontTraitMask.narrowFontMask.rawValue | NSFontTraitMask.expandedFontMask.rawValue
-                | NSFontTraitMask.condensedFontMask.rawValue | NSFontTraitMask.compressedFontMask.rawValue)
-            var chosen = members.filter { $0.traits & (italic | squeezed) == 0 }
-            if chosen.isEmpty { chosen = members.filter { $0.traits & italic == 0 } }
-            if chosen.isEmpty { chosen = members }
-            return chosen
-                .sorted { ($0.face.weight, $0.fineWeight) < ($1.face.weight, $1.fineWeight) }
-                .map { $0.face }
+            // Saved styles hold AppKit's weights, so on the Mac they keep coming from AppKit.
+            #if os(macOS)
+            return FontFaces.uprightFaces(FontFaces.appKitMembers(ofFamily: family))
+            #else
+            return FontFaces.uprightFaces(FontFaces.coreTextMembers(ofFamily: family))
+            #endif
+        }
+    }
+
+    /// One face of a family, with what is needed to choose among them.
+    struct Member {
+        var face: Face
+        var isItalic: Bool
+        /// Narrow, condensed, compressed or expanded.
+        var isSqueezed: Bool
+        /// Core Text's finer weight (-1…1), which tells apart faces AppKit ranks the same.
+        var fineWeight: Double
+    }
+
+    static func uprightFaces(_ members: [Member]) -> [Face] {
+        var chosen = members.filter { !$0.isItalic && !$0.isSqueezed }
+        if chosen.isEmpty { chosen = members.filter { !$0.isItalic } }
+        if chosen.isEmpty { chosen = members }
+        return chosen
+            .sorted { ($0.face.weight, $0.fineWeight) < ($1.face.weight, $1.fineWeight) }
+            .map { $0.face }
+    }
+
+    #if os(macOS)
+    static func appKitMembers(ofFamily family: String) -> [Member] {
+        let italic = Int(NSFontTraitMask.italicFontMask.rawValue)
+        let squeezed = Int(NSFontTraitMask.narrowFontMask.rawValue | NSFontTraitMask.expandedFontMask.rawValue
+            | NSFontTraitMask.condensedFontMask.rawValue | NSFontTraitMask.compressedFontMask.rawValue)
+        return (NSFontManager.shared.availableMembers(ofFontFamily: family) ?? []).compactMap { entry in
+            guard entry.count >= 4, let name = entry[0] as? String, let style = entry[1] as? String,
+                  let weight = entry[2] as? Int, let traits = entry[3] as? Int else { return nil }
+            let descriptor = NSFontDescriptor(name: name, size: 12)
+            let fine = ((descriptor.object(forKey: .traits) as? [NSFontDescriptor.TraitKey: Any])?[.weight] as? Double) ?? 0
+            return Member(
+                face: Face(postScriptName: name, styleName: style, weight: weight),
+                isItalic: traits & italic != 0, isSqueezed: traits & squeezed != 0, fineWeight: fine
+            )
+        }
+    }
+    #endif
+
+    /// The same listing without AppKit's font manager, which only the Mac has.
+    static func coreTextMembers(ofFamily family: String) -> [Member] {
+        let query = CTFontDescriptorCreateWithAttributes([kCTFontFamilyNameAttribute: family] as CFDictionary)
+        let matches = (CTFontDescriptorCreateMatchingFontDescriptors(query, nil) as? [CTFontDescriptor]) ?? []
+        return matches.compactMap { descriptor in
+            guard let name = CTFontDescriptorCopyAttribute(descriptor, kCTFontNameAttribute) as? String else { return nil }
+            let style = (CTFontDescriptorCopyAttribute(descriptor, kCTFontStyleNameAttribute) as? String) ?? ""
+            let traits = (CTFontDescriptorCopyAttribute(descriptor, kCTFontTraitsAttribute) as? [CFString: Any]) ?? [:]
+            let fine = (traits[kCTFontWeightTrait] as? Double) ?? 0
+            let symbolic = CTFontSymbolicTraits(rawValue: (traits[kCTFontSymbolicTrait] as? UInt32) ?? 0)
+            return Member(
+                face: Face(postScriptName: name, styleName: style, weight: appKitWeight(coreTextWeight: fine)),
+                isItalic: symbolic.contains(.traitItalic),
+                isSqueezed: !symbolic.isDisjoint(with: [.traitCondensed, .traitExpanded]),
+                fineWeight: fine
+            )
+        }
+    }
+
+    /// AppKit's 0–15 weight for a Core Text weight (-1…1). AppKit also reads the style name,
+    /// so for a few fonts this is a step away from what AppKit itself reports.
+    static func appKitWeight(coreTextWeight weight: Double) -> Int {
+        switch weight {
+        case ..<(-0.7): return 2
+        case ..<(-0.3): return 3
+        case ..<(-0.1): return 4
+        case ..<0.1: return 5
+        case ..<0.27: return 6
+        case ..<0.37: return 8
+        case ..<0.48: return 9
+        case ..<0.58: return 10
+        case ..<0.66: return 11
+        case ..<0.78: return 12
+        default: return 14
         }
     }
 }

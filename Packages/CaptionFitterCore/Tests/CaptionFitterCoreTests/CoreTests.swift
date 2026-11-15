@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import Testing
 @testable import CaptionFitterCore
@@ -492,6 +493,30 @@ private func words(_ text: String, start: Double = 0, step: Double = 0.5) -> [Ti
         let high = try #require(SubtitleRenderer.render(text: "測試", style: SubtitleStyle(verticalPosition: 0.9), videoSize: size))
         #expect(high.frame.midY > low.frame.midY)
     }
+
+    /// Each platform hands Core Text its own font and color classes; both have to be honoured.
+    @Test func textIsDrawnInTheStyleColors() throws {
+        let style = SubtitleStyle(
+            textColor: RGBAColor(red: 1, green: 0, blue: 0),
+            outlineColor: RGBAColor(red: 0, green: 0, blue: 1),
+            outlineScale: 0.1
+        )
+        let image = try #require(SubtitleRenderer.render(text: "測試", style: style, videoSize: CGSize(width: 1280, height: 720))).image
+        var pixels = [UInt8](repeating: 0, count: image.width * image.height * 4)
+        let context = try #require(CGContext(
+            data: &pixels, width: image.width, height: image.height, bitsPerComponent: 8, bytesPerRow: image.width * 4,
+            space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ))
+        context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+
+        var red = 0, blue = 0
+        for index in stride(from: 0, to: pixels.count, by: 4) where pixels[index + 3] > 200 {
+            if pixels[index] > 200 && pixels[index + 2] < 60 { red += 1 }
+            if pixels[index + 2] > 200 && pixels[index] < 60 { blue += 1 }
+        }
+        #expect(red > 100)
+        #expect(blue > 100)
+    }
 }
 
 @Suite struct ReviewTests {
@@ -523,6 +548,15 @@ private func words(_ text: String, start: Double = 0, step: Double = 0.5) -> [Ti
         #expect(FontFaces.resolve(family: "PingFang TC", weight: 9, face: nil)?.postScriptName == "PingFangTC-Semibold")
         #expect(FontFaces.resolve(family: "No Such Family", weight: 9, face: nil) == nil)
     }
+
+    #if os(macOS)
+    /// Other platforms list faces through Core Text, which has to agree with what the Mac shows.
+    @Test func coreTextListingMatchesAppKit() {
+        for family in ["Helvetica Neue", "PingFang TC", "Arial", "No Such Family"] {
+            #expect(FontFaces.uprightFaces(FontFaces.coreTextMembers(ofFamily: family)) == FontFaces.faces(ofFamily: family))
+        }
+    }
+    #endif
 
     @Test func styleUsesTheChosenWeight() {
         let light = SubtitleStyle(fontName: "Helvetica Neue", fontWeight: 3).font(videoHeight: 720)
