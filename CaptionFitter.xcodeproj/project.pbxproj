@@ -15,6 +15,7 @@
 		CF0000000000000000000012 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		CF0000000000000000000013 /* CaptionFitterCore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CaptionFitterCore; path = Packages/CaptionFitterCore; sourceTree = "<group>"; };
 		CF0000000000000000000014 /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
+		CF0000000000000000000015 /* README.zh-TW.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "README.zh-TW.md"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -41,6 +42,7 @@
 			isa = PBXGroup;
 			children = (
 				CF0000000000000000000012 /* README.md */,
+				CF0000000000000000000015 /* README.zh-TW.md */,
 				CF0000000000000000000014 /* AGENTS.md */,
 				CF0000000000000000000011 /* App */,
 				CF0000000000000000000013 /* CaptionFitterCore */,

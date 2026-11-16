@@ -1,83 +1,87 @@
+<img src="App/AppIcon.icon/Assets/CaptionFitter.png" width="128" alt="CaptionFitter app icon">
+
 # CaptionFitter
 
-把逐字稿對齊到影片的人聲，產生字幕的 macOS App。一般人聲影片與歌曲都適用，全部在本機進行處理，不會上傳影片。
+**English** | [繁體中文](README.zh-TW.md)
 
-## 功能
+A macOS app that aligns a transcript to the voice in a video and turns it into subtitles. It works for both spoken-word videos and songs. Everything is processed on your Mac; your video is never uploaded.
 
-- **逐字稿來源**：貼上逐字稿、自動轉錄（沒有逐字稿時由模型聽寫）、搜尋歌詞（LRCLIB）
-- **語系可選**，提升辨識準確度
-- **預覽與字幕編輯器**：修改文字、調整時間、分割／合併、整體平移，支援復原
-- **輸出**：SRT 字幕檔、把字幕嵌入影片另存為新影片，或兩者一起輸出
-- **模型管理**：下載、刪除本機語音模型，選擇使用的模型
+## Features
 
-## 快捷鍵
+- **Transcript sources**: paste a transcript, transcribe automatically (the model listens when you have no transcript), or search for lyrics (LRCLIB)
+- **Selectable language** to improve recognition accuracy
+- **Preview and subtitle editor**: edit text, adjust timing, split and merge lines, shift everything at once, with undo support
+- **Export**: an SRT subtitle file, a new video with the subtitles burned in, or both
+- **Model management**: download and delete on-device speech models, and choose which one to use
 
-| 按鍵 | 動作 |
+## Keyboard shortcuts
+
+| Key | Action |
 |---|---|
-| 空白鍵 | 播放／暫停 |
-| ⇧← ／ ⇧→ | 倒退／快進（預設 5 秒，可在設定中改為 1–15 秒） |
-| ← ／ → | 前一格／後一格 |
-| ⌘E | 輸出 |
-| ⌘, | 設定 |
+| Space | Play / pause |
+| ⇧← / ⇧→ | Skip backward / forward (5 seconds by default; adjustable from 1 to 15 seconds in Settings) |
+| ← / → | Previous frame / next frame |
+| ⌘E | Export |
+| ⌘, | Settings |
 
-正在輸入字幕文字時，方向鍵用來移動游標與選取文字，不會移動播放位置。
+While you are typing subtitle text, the arrow keys move the cursor and select text instead of moving the playhead.
 
-## 需求
+## Requirements
 
-- macOS 26 以上、Apple Silicon
-- Xcode 26 以上
+- macOS 26 or later, Apple Silicon
+- Xcode 26 or later
 
-## 建置
+## Building
 
-用 Xcode 開啟 `CaptionFitter.xcodeproj` 後執行，或：
+Open `CaptionFitter.xcodeproj` in Xcode and run it, or:
 
 ```bash
 xcodebuild -project CaptionFitter.xcodeproj -scheme CaptionFitter -configuration Debug -derivedDataPath .build/xcode build
 ```
 
-第一次使用請先到設定（⌘,）下載一個語音模型。
+Before first use, open Settings (⌘,) and download a speech model.
 
-## 專案結構
+## Project structure
 
-- `App/`：SwiftUI 介面
-- `Packages/CaptionFitterCore/`：核心邏輯（對齊、逐字稿斷行、歌詞搜尋、模型管理、SRT、燒入輸出），唯一的第三方依賴是 [WhisperKit](https://github.com/argmaxinc/WhisperKit)
+- `App/`: the SwiftUI interface
+- `Packages/CaptionFitterCore/`: the core logic (alignment, transcript line breaking, lyrics search, model management, SRT, burn-in export). Its only third-party dependency is [WhisperKit](https://github.com/argmaxinc/WhisperKit)
 
-## 測試
+## Testing
 
 ```bash
 cd Packages/CaptionFitterCore && swift test
 ```
 
-核心套件附一個命令列工具，可不開 App 測試：
+The core package includes a command-line tool for testing without opening the app:
 
 ```bash
 cd Packages/CaptionFitterCore && swift run captionfitter-cli
 ```
 
-## 輸出
+## Export
 
-對齊並檢查字幕後，按工具列的「輸出」（⌘E），選擇要輸出 SRT 字幕檔、含字幕的影片，或兩者都要。標示為「在聲音中找不到」的行（紅點）和沒有文字的行不會輸出。
+After aligning and reviewing the subtitles, click Export (⌘E) in the toolbar and choose an SRT subtitle file, a video with subtitles, or both. Lines marked as not found in the audio (red dot) and lines with no text are not exported.
 
-### SRT 字幕檔
+### SRT subtitle file
 
-純文字的字幕檔，使用 UTF-8 編碼。影片本身不會被修改，多數播放器與影音平台都能讀取。
+A plain-text subtitle file in UTF-8. The video itself is not modified, and most players and video platforms can read the file.
 
-每一段字幕由序號、起訖時間（`時:分:秒,毫秒`）和文字組成，段落之間空一行：
+Each subtitle consists of a sequence number, start and end times (`hours:minutes:seconds,milliseconds`), and the text, with a blank line between subtitles:
 
 ```
 1
 00:00:11,700 --> 00:00:14,250
-第一行字幕
+First subtitle line
 
 2
 00:00:14,250 --> 00:00:17,800
-第二行字幕
+Second subtitle line
 ```
 
-### 嵌入字幕的影片（MP4）
+### Video with burned-in subtitles (MP4)
 
-把字幕直接畫在畫面上，另存成新的影片檔，預設檔名為「原檔名-字幕.mp4」。
+The subtitles are drawn directly onto the picture and saved as a new video file. The default file name is `<original name>-字幕.mp4`.
 
-輸出時可以選擇畫質（原始、1080p、720p、480p）與幀率（原始、60、30 格／秒）。只會列出比原始影片低的選項，輸出不會放大畫面，也不會補格。
+When exporting, you can choose the quality (original, 1080p, 720p, 480p) and frame rate (original, 60, 30 fps). Only options lower than the original video are listed; export never upscales the picture or interpolates frames.
 
-字幕的字型、大小、文字與描邊顏色、陰影、高度可以在「字幕樣式」中設定，預覽畫面顯示的樣子即為輸出結果。嵌入後輸出的字幕無法關閉或再修改，需要調整時請回到 App 重新輸出。只有音訊的檔案不支援使用此選項。
+The subtitle font, size, text and outline colors, shadow, and vertical position can be set under Subtitle Style. What the preview shows is what gets exported. Burned-in subtitles cannot be turned off or edited afterward; to change them, go back to the app and export again. This option is not available for audio-only files.
