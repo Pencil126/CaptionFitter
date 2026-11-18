@@ -25,3 +25,6 @@ jobs:
         run: >
           xcodebuild -project CaptionFitter.xcodeproj -scheme CaptionFitter
           -configuration Debug -derivedDataPath .build/xcode build
+
+      - name: Check translations
+        run: .github/scripts/check-localizations.sh

@@ -38,9 +38,9 @@ extension View {
 struct BrandButtonLabel: View {
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.appearsActive) private var appearsActive
-    let title: String
+    let title: LocalizedStringKey
 
-    init(_ title: String) {
+    init(_ title: LocalizedStringKey) {
         self.title = title
     }
 

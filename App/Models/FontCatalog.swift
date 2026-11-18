@@ -8,9 +8,9 @@ struct FontFamilyInfo: Identifiable, Hashable, Sendable {
 
         var title: String {
             switch self {
-            case .chinese: return "中文字型"
-            case .english: return "英文字型"
-            case .other: return "其他字型"
+            case .chinese: return String(localized: "Chinese Fonts")
+            case .english: return String(localized: "English Fonts")
+            case .other: return String(localized: "Other Fonts")
             }
         }
     }
@@ -47,17 +47,29 @@ enum FontCatalog {
         NSFontManager.shared.localizedName(forFamily: family, face: nil)
     }
 
-    /// A Chinese name for the common weight names; anything else is shown as the font calls it.
+    /// The common weight names in the user's language, followed by the font's own name;
+    /// anything else is shown as the font calls it.
     static func weightLabel(_ styleName: String) -> String {
+        // Fonts name their weights in English, so an English interface shows them as they are.
+        guard Bundle.main.preferredLocalizations.first != "en" else { return styleName }
         let key = styleName.lowercased().replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "-", with: "")
-        let names: [String: String] = [
-            "ultralight": "極細", "extralight": "極細", "thin": "纖細", "light": "細體",
-            "regular": "標準", "roman": "標準", "book": "標準", "normal": "標準", "plain": "標準",
-            "medium": "中等", "semibold": "中粗", "demibold": "中粗", "demi": "中粗",
-            "bold": "粗體", "extrabold": "特粗", "heavy": "特粗", "black": "極粗",
+        let ultraLight = LocalizedStringResource("Ultralight", comment: "Font weight")
+        let regular = LocalizedStringResource("Regular", comment: "Font weight")
+        let semibold = LocalizedStringResource("Semibold", comment: "Font weight")
+        let heavy = LocalizedStringResource("Heavy", comment: "Font weight")
+        let names: [String: LocalizedStringResource] = [
+            "ultralight": ultraLight, "extralight": ultraLight,
+            "thin": LocalizedStringResource("Thin", comment: "Font weight"),
+            "light": LocalizedStringResource("Light", comment: "Font weight"),
+            "regular": regular, "roman": regular, "book": regular, "normal": regular, "plain": regular,
+            "medium": LocalizedStringResource("Medium", comment: "Font weight"),
+            "semibold": semibold, "demibold": semibold, "demi": semibold,
+            "bold": LocalizedStringResource("Bold", comment: "Font weight"),
+            "extrabold": heavy, "heavy": heavy,
+            "black": LocalizedStringResource("Black", comment: "Font weight"),
         ]
         guard let name = names[key] else { return styleName }
-        return "\(name)（\(styleName)）"
+        return String(localized: "\(String(localized: name)) (\(styleName))", comment: "Font weight: the translated name, then the font's own name")
     }
 
     /// Languages written in scripts of their own. A font made for one of these usually has

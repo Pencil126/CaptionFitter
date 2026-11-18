@@ -4,12 +4,15 @@ import Foundation
 public enum AudioExtractor {
     public enum ExtractionError: LocalizedError {
         case noAudioTrack
-        case readFailed(String)
+        case unsupportedFormat
+        /// The reason from the system, already in the user's language, or nil when it gave none.
+        case readFailed(String?)
 
         public var errorDescription: String? {
             switch self {
-            case .noAudioTrack: return "這個檔案沒有音訊軌。"
-            case .readFailed(let reason): return "無法讀取音訊：\(reason)"
+            case .noAudioTrack: return "This file has no audio track."
+            case .unsupportedFormat: return "Can't read audio: unsupported audio format."
+            case .readFailed(let reason): return "Can't read audio: \(reason ?? "unknown error")"
             }
         }
     }
@@ -37,10 +40,10 @@ public enum AudioExtractor {
             AVLinearPCMIsBigEndianKey: false,
             AVLinearPCMIsNonInterleaved: false,
         ])
-        guard reader.canAdd(output) else { throw ExtractionError.readFailed("不支援的音訊格式") }
+        guard reader.canAdd(output) else { throw ExtractionError.unsupportedFormat }
         reader.add(output)
         guard reader.startReading() else {
-            throw ExtractionError.readFailed(reader.error?.localizedDescription ?? "未知錯誤")
+            throw ExtractionError.readFailed(reader.error?.localizedDescription)
         }
 
         var samples: [Float] = []
@@ -63,7 +66,7 @@ public enum AudioExtractor {
             }
         }
         if reader.status == .failed {
-            throw ExtractionError.readFailed(reader.error?.localizedDescription ?? "未知錯誤")
+            throw ExtractionError.readFailed(reader.error?.localizedDescription)
         }
         return samples
     }

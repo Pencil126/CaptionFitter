@@ -13,6 +13,7 @@ A macOS app that aligns a transcript to the voice in a video and turns it into s
 - **Preview and subtitle editor**: edit text, adjust timing, split and merge lines, shift everything at once, with undo support
 - **Export**: an SRT subtitle file, a new video with the subtitles burned in, or both
 - **Model management**: download and delete on-device speech models, and choose which one to use
+- **English and Traditional Chinese interface**: follows your Mac's language; any other language shows English. To pick one for this app only, go to System Settings › General › Language & Region › Applications
 
 ## Keyboard shortcuts
 
@@ -80,7 +81,7 @@ Second subtitle line
 
 ### Video with burned-in subtitles (MP4)
 
-The subtitles are drawn directly onto the picture and saved as a new video file. The default file name is `<original name>-字幕.mp4`.
+The subtitles are drawn directly onto the picture and saved as a new video file. The default file name is `<original name>-subtitled.mp4` (`<original name>-字幕.mp4` in the Chinese interface).
 
 When exporting, you can choose the quality (original, 1080p, 720p, 480p) and frame rate (original, 60, 30 fps). Only options lower than the original video are listed; export never upscales the picture or interpolates frames.
 

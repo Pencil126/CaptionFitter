@@ -9,25 +9,25 @@ func fail(_ message: String) -> Never {
 }
 
 let usage = """
-用法：
-  captionfitter-cli models                              列出模型
-  captionfitter-cli download <模型>                     下載模型
-  captionfitter-cli delete <模型>                       刪除已下載的模型
-  captionfitter-cli align <媒體檔> --script <逐字稿檔> [選項]   將逐字稿對齊成字幕
-  captionfitter-cli transcribe <媒體檔> [選項]           無逐字稿，直接轉錄成字幕
-  captionfitter-cli burn <影片檔> --srt <SRT> --out <MP4>      把字幕燒入影片
+Usage:
+  captionfitter-cli models                              List models
+  captionfitter-cli download <model>                    Download a model
+  captionfitter-cli delete <model>                      Delete a downloaded model
+  captionfitter-cli align <media> --script <transcript> [options]   Align a transcript into subtitles
+  captionfitter-cli transcribe <media> [options]         Transcribe into subtitles without a transcript
+  captionfitter-cli burn <video> --srt <SRT> --out <MP4>       Burn subtitles into a video
       [--height 480|720|1080] [--fps 30|60] [--shadow none|soft|strong] [--position 0…1]
 
-選項：
-  --model <模型>     預設使用第一個已下載的模型
-  --lang <語系>      zh-Hant（預設）、zh-Hans、yue、en、ja、ko、auto…
-  --auto-wrap <寬度> 逐字稿自動斷行（每行字數上限）；未指定則保留原本換行
-  --lyrics           以歌詞規則清理逐字稿（刪製作名單、段落標記、LRC 時間碼）
-  --out <檔案>       輸出 SRT 路徑，預設與媒體檔同名
-  --words            另外印出辨識到的逐字時間
-  --match            align 改用「先轉錄再比對文字」的舊做法
-  --no-cross-check   align 不做自由轉錄的交叉檢查（較快，但逐字稿以外的講話可能被配上字幕）
-  --fill-unscripted  align 把偵測到的「逐字稿以外的講話」自動轉錄並補成字幕
+Options:
+  --model <model>    Defaults to the first downloaded model
+  --lang <language>  zh-Hant (default), zh-Hans, yue, en, ja, ko, auto…
+  --auto-wrap <width> Break the transcript into lines automatically (max characters per line); otherwise keep its line breaks
+  --lyrics           Clean the transcript as lyrics (drop credits, section labels, LRC timestamps)
+  --out <file>       SRT output path; defaults to the media file's name
+  --words            Also print the recognized word timings
+  --match            For align, use the older transcribe-then-match approach
+  --no-cross-check   For align, skip the free-transcription cross-check (faster, but speech outside the transcript may get subtitles)
+  --fill-unscripted  For align, transcribe detected speech outside the transcript and add it as subtitles
 """
 
 var arguments = Array(CommandLine.arguments.dropFirst())
@@ -53,9 +53,9 @@ let formatter = ByteCountFormatter()
 
 func recognizer(model requested: String?) async throws -> WhisperRecognizer {
     let downloaded = store.localModels().filter { $0.state == .downloaded }
-    guard let model = requested ?? downloaded.first?.id else { fail("尚未下載任何模型，請先執行 download。") }
-    guard store.isDownloaded(model) else { fail("模型 \(model) 尚未下載。") }
-    print("載入模型 \(model)…")
+    guard let model = requested ?? downloaded.first?.id else { fail("No model downloaded yet. Run download first.") }
+    guard store.isDownloaded(model) else { fail("Model \(model) is not downloaded.") }
+    print("Loading model \(model)…")
     return try await WhisperRecognizer(modelFolder: store.folder(for: model), supportFolder: store.baseFolder)
 }
 
@@ -63,17 +63,30 @@ func recognize(_ media: URL, model: String?, language: SpeechLanguage) async thr
     let engine = try await recognizer(model: model)
     let duration = try await AudioExtractor.duration(of: media)
     let samples = try await AudioExtractor.samples(from: media)
-    print(String(format: "音訊長度 %.1f 秒，辨識中…", duration))
+    print(String(format: "Audio is %.1f s long, recognizing…", duration))
     let started = Date()
     let recognition = try await engine.recognize(samples: samples, language: language) { _ in }
-    print(String(format: "辨識完成，耗時 %.1f 秒（%.1f 倍速）", Date().timeIntervalSince(started), duration / max(Date().timeIntervalSince(started), 0.001)))
+    print(String(format: "Recognized in %.1f s (%.1f× real time)", Date().timeIntervalSince(started), duration / max(Date().timeIntervalSince(started), 0.001)))
     return (recognition, duration)
+}
+
+func describe(_ warning: AlignmentReport.Warning) -> String {
+    switch warning {
+    case let .mostLinesUnmatched(doubtful, total):
+        return "Most lines (\(doubtful)/\(total)) don't match the audio. The transcript may not match the video, or the language may be wrong."
+    case let .someLinesUncertain(doubtful, total):
+        return "\(doubtful)/\(total) lines have uncertain timing."
+    case let .endsEarly(percent):
+        return "The subtitles end at \(percent)% of the media. The transcript may be incomplete."
+    case let .lyricsLengthMismatch(seconds, likelyDifferentVersion):
+        return "The lyrics differ in length from the media by \(seconds) s" + (likelyDifferentVersion ? ", probably a different version." : ".")
+    }
 }
 
 func printSummary(_ lines: [SubtitleLine], duration: Double) {
     let report = AlignmentReport(lines: lines, mediaDuration: duration)
-    print("共 \(report.totalLines) 行：對上 \(report.goodLines)、部分 \(report.partialLines)、內插 \(report.interpolatedLines)")
-    for warning in report.warnings { print("⚠️ \(warning)") }
+    print("\(report.totalLines) lines: \(report.goodLines) matched, \(report.partialLines) partial, \(report.interpolatedLines) interpolated")
+    for warning in report.warnings { print("⚠️ \(describe(warning))") }
 }
 
 do {
@@ -82,28 +95,28 @@ do {
         for model in await store.allModels() {
             let state: String
             switch model.state {
-            case .downloaded: state = "已下載 " + formatter.string(fromByteCount: model.sizeOnDisk ?? 0)
-            case .incomplete: state = "未完成"
-            case .notDownloaded: state = "未下載"
+            case .downloaded: state = "downloaded " + formatter.string(fromByteCount: model.sizeOnDisk ?? 0)
+            case .incomplete: state = "incomplete"
+            case .notDownloaded: state = "not downloaded"
             }
-            let marks = (model.isDefaultForDevice ? " ★預設" : "") + (model.isRecommended ? " 建議" : "")
+            let marks = (model.isDefaultForDevice ? " ★default" : "") + (model.isRecommended ? " recommended" : "")
             print("\(model.id)  [\(state)]\(marks)")
         }
-        print("儲存位置：\(store.baseFolder.path)")
+        print("Stored in: \(store.baseFolder.path)")
 
     case "download":
         guard let model = arguments.first else { fail(usage) }
         let folder = try await store.download(model) { fraction in
-            print(String(format: "\r下載中 %3d%%", Int(fraction * 100)), terminator: "")
+            print(String(format: "\rDownloading %3d%%", Int(fraction * 100)), terminator: "")
             fflush(stdout)
         }
         print("")
-        print("完成：\(folder.path)")
+        print("Done: \(folder.path)")
 
     case "delete":
         guard let model = arguments.first else { fail(usage) }
         try store.delete(model)
-        print("已刪除 \(model)")
+        print("Deleted \(model)")
 
     case "align", "transcribe":
         let model = option("--model")
@@ -114,13 +127,13 @@ do {
         let asLyrics = flag("--lyrics")
         let showWords = flag("--words")
         guard let mediaPath = arguments.first else { fail(usage) }
-        guard let language = SpeechLanguage.all.first(where: { $0.id == languageID }) else { fail("不支援的語系：\(languageID)") }
+        guard let language = SpeechLanguage.all.first(where: { $0.id == languageID }) else { fail("Unsupported language: \(languageID)") }
 
         let media = URL(fileURLWithPath: mediaPath)
         let forced = !flag("--match")
         if command == "align", forced {
             // Default: forced alignment (the model reads the script against the audio).
-            guard let scriptPath else { fail("align 需要 --script") }
+            guard let scriptPath else { fail("align needs --script") }
             let script = try String(contentsOfFile: scriptPath, encoding: .utf8)
             let scriptLines = asLyrics
                 ? LyricsCleaner.clean(script)
@@ -135,25 +148,25 @@ do {
             for round in 1..<(option("--repeat").flatMap(Int.init) ?? 1) {
                 let extra = try await engine.align(scriptLines: scriptLines, samples: samples, language: language, crossCheck: crossCheck) { _ in }
                 let regions = extra.unscriptedRegions.map { String(format: "%.1f–%.1f", $0.lowerBound, $0.upperBound) }
-                print("第 \(round) 次：逐字稿以外的講話 \(regions.isEmpty ? "無" : regions.joined(separator: "、"))")
+                print("Round \(round): speech outside the transcript: \(regions.isEmpty ? "none" : regions.joined(separator: ", "))")
             }
             let alignment = try await engine.align(scriptLines: scriptLines, samples: samples, language: language, crossCheck: crossCheck) { _ in }
-            print(String(format: "對齊完成，耗時 %.1f 秒", Date().timeIntervalSince(started)))
+            print(String(format: "Aligned in %.1f s", Date().timeIntervalSince(started)))
             var document = SubtitleDocument(lines: alignment.lines)
             for region in alignment.unscriptedRegions {
-                print(String(format: "逐字稿以外的講話：%.1f–%.1f 秒", region.lowerBound, region.upperBound))
+                print(String(format: "Speech outside the transcript: %.1f–%.1f s", region.lowerBound, region.upperBound))
                 guard fill else { continue }
                 let fillStarted = Date()
                 let added = try await engine.transcribe(region: region, samples: samples, language: language, maxWidth: wrap ?? 16) { _ in }
                 document.insert(added)
-                print(String(format: "  補上 %d 行，耗時 %.1f 秒", added.count, Date().timeIntervalSince(fillStarted)))
+                print(String(format: "  Added %d lines in %.1f s", added.count, Date().timeIntervalSince(fillStarted)))
                 for line in added { print(String(format: "  %7.2f %7.2f  %@", line.start, line.end, line.text)) }
             }
             let lines = document.lines
             let destination = out.map { URL(fileURLWithPath: $0) } ?? media.deletingPathExtension().appendingPathExtension("srt")
             try SRTWriter.write(lines, to: destination)
             printSummary(lines, duration: duration)
-            print("已輸出：\(destination.path)")
+            print("Saved: \(destination.path)")
             exit(0)
         }
         let (recognition, duration) = try await recognize(media, model: model, language: language)
@@ -163,7 +176,7 @@ do {
 
         let lines: [SubtitleLine]
         if command == "align" {
-            guard let scriptPath else { fail("align 需要 --script") }
+            guard let scriptPath else { fail("align needs --script") }
             let script = try String(contentsOfFile: scriptPath, encoding: .utf8)
             let scriptLines: [String]
             if asLyrics {
@@ -179,12 +192,12 @@ do {
         let destination = out.map { URL(fileURLWithPath: $0) } ?? media.deletingPathExtension().appendingPathExtension("srt")
         try SRTWriter.write(lines, to: destination)
         printSummary(lines, duration: duration)
-        print("已輸出：\(destination.path)")
+        print("Saved: \(destination.path)")
 
     case "burn":
         guard let srtPath = option("--srt"), let out = option("--out"), let mediaPath = arguments.first else { fail(usage) }
         let lines = SRTWriter.parse(try String(contentsOfFile: srtPath, encoding: .utf8))
-        print("燒入 \(lines.count) 行字幕…")
+        print("Burning in \(lines.count) subtitle lines…")
         var style = SubtitleStyle()
         if let name = option("--shadow"), let shadow = SubtitleStyle.Shadow(rawValue: name) { style.shadow = shadow }
         if let position = option("--position").flatMap(Double.init) { style.verticalPosition = position }
@@ -196,11 +209,11 @@ do {
             lines: lines, style: style,
             source: URL(fileURLWithPath: mediaPath), destination: URL(fileURLWithPath: out), options: options
         ) { _ in }
-        print("已輸出：\(out)")
+        print("Saved: \(out)")
 
     default:
         fail(usage)
     }
 } catch {
-    fail("錯誤：\(error.localizedDescription)")
+    fail("Error: \(error.localizedDescription)")
 }

@@ -15,29 +15,29 @@ struct SetupPanel: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    section("影片或音檔") { mediaSection }
+                    section("Video or Audio") { mediaSection }
 
-                    section("辨識設定") {
+                    section("Recognition") {
                         Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 8) {
                             GridRow {
-                                Text("語系")
-                                Picker("語系", selection: $model.languageID) {
-                                    ForEach(SpeechLanguage.all) { Text($0.displayName).tag($0.id) }
+                                Text("Language")
+                                Picker("Language", selection: $model.languageID) {
+                                    ForEach(SpeechLanguage.all) { Text(CoreMessages.languageName($0)).tag($0.id) }
                                 }
                                 .labelsHidden()
                             }
                             GridRow {
-                                Text("模型")
+                                Text("Model")
                                 modelPicker
                             }
                         }
-                        Text("選擇影片中實際說或唱的語言，辨識會更準確。")
+                        Text("Choose the language actually spoken or sung in the video for more accurate recognition.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
 
-                    section("逐字稿") {
-                        Picker("逐字稿來源", selection: $model.source) {
+                    section("Transcript") {
+                        Picker("Transcript Source", selection: $model.source) {
                             ForEach(ScriptSource.allCases) { Text($0.title).tag($0) }
                         }
                         .pickerStyle(.segmented)
@@ -54,7 +54,7 @@ struct SetupPanel: View {
                     if let report = model.report, report.hasWarnings {
                         VStack(alignment: .leading, spacing: 6) {
                             ForEach(report.warnings, id: \.self) { warning in
-                                Label(warning, systemImage: "exclamationmark.triangle.fill")
+                                Label(CoreMessages.text(for: warning), systemImage: "exclamationmark.triangle.fill")
                                     .symbolRenderingMode(.multicolor)
                                     .font(.callout)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -72,7 +72,7 @@ struct SetupPanel: View {
         .task { models.refreshLocal() }
     }
 
-    private func section(_ title: String, @ViewBuilder content: () -> some View) -> some View {
+    private func section(_ title: LocalizedStringKey, @ViewBuilder content: () -> some View) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title).font(.headline)
             content()
@@ -92,13 +92,13 @@ struct SetupPanel: View {
                         .lineLimit(2)
                         .truncationMode(.middle)
                     if model.mediaDuration > 0 {
-                        Text("長度 \(TimeText.duration(model.mediaDuration))")
+                        Text("Length \(TimeText.duration(model.mediaDuration))")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
                 Spacer()
-                Button("更換…") { model.chooseMedia() }
+                Button("Change…") { model.chooseMedia() }
                     .disabled(model.isWorking)
             }
         } else {
@@ -107,7 +107,7 @@ struct SetupPanel: View {
             } label: {
                 VStack(spacing: 6) {
                     Image(systemName: "square.and.arrow.down").font(.title)
-                    Text("選擇檔案，或把檔案拖到視窗中")
+                    Text("Choose a file, or drag one into the window")
                 }
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)
@@ -126,13 +126,13 @@ struct SetupPanel: View {
     @ViewBuilder private var modelPicker: some View {
         @Bindable var models = models
         if models.downloadedModels.isEmpty {
-            Button("下載語音模型…") {
+            Button("Download a Speech Model…") {
                 SettingsTab.models.select()
                 openSettings()
             }
         } else {
             HStack {
-                Picker("模型", selection: Binding(
+                Picker("Model", selection: Binding(
                     get: { models.activeModelID ?? "" },
                     set: { models.defaultModelID = $0 }
                 )) {
@@ -145,37 +145,37 @@ struct SetupPanel: View {
                 } label: {
                     Image(systemName: "gearshape")
                 }
-                .help("管理語音模型")
+                .help("Manage speech models")
             }
         }
     }
 
     @ViewBuilder private var pasteSection: some View {
         @Bindable var model = model
-        ScriptEditor(text: $model.pastedScript, placeholder: "在這裡貼上逐字稿…")
+        ScriptEditor(text: $model.pastedScript, placeholder: "Paste the transcript here…")
             .frame(minHeight: 200)
 
-        Toggle("自動斷行", isOn: $model.autoWrap)
+        Toggle("Break Lines Automatically", isOn: $model.autoWrap)
             .brandTint()
         if model.autoWrap {
             widthStepper
-            Text("依標點與字數把整段文字切成字幕行。")
+            Text("Splits the text into subtitle lines by punctuation and length.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         } else {
-            Text("逐字稿的每一行會成為一行字幕。")
+            Text("Each line of the transcript becomes one subtitle line.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         if !model.pastedScript.isEmpty {
-            Text("共 \(model.scriptLines.count) 行字幕")
+            Text("\(model.scriptLines.count) subtitle lines")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
     }
 
     @ViewBuilder private var transcribeSection: some View {
-        Text("沒有逐字稿時，直接由語音模型聽寫出字幕。之後可在編輯器中修正錯字。")
+        Text("Without a transcript, the speech model writes the subtitles from what it hears. You can fix mistakes in the editor afterward.")
             .font(.callout)
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
@@ -185,7 +185,7 @@ struct SetupPanel: View {
     private var widthStepper: some View {
         @Bindable var model = model
         return Stepper(value: $model.maxLineWidth, in: 8...40, step: 1) {
-            Text("每行最多 \(Int(model.maxLineWidth)) 個字")
+            Text("Up to \(Int(model.maxLineWidth)) characters per line")
         }
     }
 
@@ -205,13 +205,13 @@ struct SetupPanel: View {
                     }
                     .brandTint()
                 }
-                Button("取消") { model.cancelWork() }
+                Button("Cancel") { model.cancelWork() }
             }
         } else {
             Button {
                 model.align(using: models, undoManager: undoManager)
             } label: {
-                BrandButtonLabel(model.source == .transcribe ? "轉錄字幕" : "對齊字幕")
+                BrandButtonLabel(model.source == .transcribe ? LocalizedStringKey("Transcribe Subtitles") : "Align Subtitles")
                     .frame(maxWidth: .infinity)
             }
             .controlSize(.large)
@@ -226,7 +226,7 @@ struct SetupPanel: View {
 /// A plain multi-line text box with a placeholder.
 struct ScriptEditor: View {
     @Binding var text: String
-    var placeholder: String
+    var placeholder: LocalizedStringKey
 
     var body: some View {
         TextEditor(text: $text)
@@ -258,24 +258,24 @@ struct LyricsSearchSection: View {
 
         Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 8) {
             GridRow {
-                Text("歌名")
-                TextField("歌名", text: $model.trackName)
+                Text("Song")
+                TextField("Song", text: $model.trackName)
                     .onSubmit { model.searchLyrics() }
             }
             GridRow {
-                Text("歌手")
-                TextField("選填", text: $model.artistName)
+                Text("Artist")
+                TextField("Optional", text: $model.artistName)
                     .onSubmit { model.searchLyrics() }
             }
         }
         .textFieldStyle(.roundedBorder)
 
         HStack {
-            Button("搜尋") { model.searchLyrics() }
+            Button("Search") { model.searchLyrics() }
                 .disabled(model.trackName.trimmingCharacters(in: .whitespaces).isEmpty || model.isSearching)
             if model.isSearching { ProgressView().controlSize(.small) }
             Spacer()
-            Text("資料來源：LRCLIB")
+            Text("Source: LRCLIB")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
@@ -300,9 +300,9 @@ struct LyricsSearchSection: View {
             .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
             .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(.quaternary) }
 
-            ScriptEditor(text: $model.lyricsText, placeholder: "選擇上方的版本後，歌詞會顯示在這裡")
+            ScriptEditor(text: $model.lyricsText, placeholder: "Choose a version above and its lyrics appear here")
                 .frame(minHeight: 160)
-            Text("可在對齊前修改。重複的段落唱幾次就要有幾次。")
+            Text("You can edit them before aligning. Write out a repeated section as many times as it's sung.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -329,9 +329,15 @@ struct LyricsSearchSection: View {
                         Text(TimeText.duration(duration)).monospacedDigit()
                         if model.mediaDuration > 0 {
                             let difference = duration - model.mediaDuration
-                            Text(abs(difference) < 1 ? "長度相符" : String(format: "%+.0f 秒", difference))
-                                .font(.caption)
-                                .foregroundStyle(abs(difference) > 15 ? .red : abs(difference) > 5 ? .orange : .secondary)
+                            Group {
+                                if abs(difference) < 1 {
+                                    Text("Same length")
+                                } else {
+                                    Text("\(String(format: "%+.0f", difference)) s", comment: "How much longer or shorter the lyrics are, e.g. +3 s")
+                                }
+                            }
+                            .font(.caption)
+                            .foregroundStyle(abs(difference) > 15 ? .red : abs(difference) > 5 ? .orange : .secondary)
                         }
                     }
                 }

@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "CaptionFitterCore",
-    defaultLocalization: "zh-Hant",
+    defaultLocalization: "en",
     platforms: [.macOS(.v26), .iOS(.v26)],
     products: [
         .library(name: "CaptionFitterCore", targets: ["CaptionFitterCore"]),

@@ -14,7 +14,7 @@ struct FontPicker: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TextField("搜尋字型", text: $query)
+            TextField("Search Fonts", text: $query)
                 .textFieldStyle(.roundedBorder)
                 .focused($searchFocused)
                 .padding(10)
@@ -24,7 +24,7 @@ struct FontPicker: View {
                     .controlSize(.small)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if sections.isEmpty {
-                Text("找不到符合「\(query)」的字型")
+                Text("No fonts match “\(query)”")
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -81,7 +81,7 @@ struct FontPicker: View {
         var sections: [(title: String, fonts: [FontFamilyInfo])] = []
         if term.isEmpty {
             let recent = recentNames.compactMap { name in families.first { $0.name == name } }
-            if !recent.isEmpty { sections.append(("最近使用", recent)) }
+            if !recent.isEmpty { sections.append((String(localized: "Recently Used"), recent)) }
         }
         let shown = term.isEmpty ? families : families.filter { $0.matches(term) }
         for group in FontFamilyInfo.Group.allCases {

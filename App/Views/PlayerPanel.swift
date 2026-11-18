@@ -40,10 +40,10 @@ struct PlayerPanel: View {
             Image(systemName: "waveform")
                 .font(.system(size: 44, weight: .medium))
                 .foregroundStyle(Color.brandAmber)
-            Text("尚未選擇影片或音檔")
+            Text("No Video or Audio Selected")
                 .font(.title3.weight(.medium))
                 .foregroundStyle(.white)
-            Text("把檔案拖進視窗，或按 ⌘O 開啟")
+            Text("Drag a file into the window, or press ⌘O to open one")
                 .font(.callout)
                 .foregroundStyle(.white.opacity(0.6))
         }
@@ -58,7 +58,7 @@ struct PlayerPanel: View {
             } label: {
                 skipLabel("gobackward")
             }
-            .help("倒退 \(skipSeconds) 秒（⇧←）")
+            .help("Back \(skipSeconds) seconds (⇧←)")
 
             Button {
                 model.togglePlayback()
@@ -67,14 +67,14 @@ struct PlayerPanel: View {
                     .frame(width: 18)
             }
             .keyboardShortcut(.space, modifiers: [])
-            .help("播放／暫停（空白鍵）")
+            .help("Play/Pause (Space)")
 
             Button {
                 model.skip(forward: true)
             } label: {
                 skipLabel("goforward")
             }
-            .help("快進 \(skipSeconds) 秒（⇧→）")
+            .help("Forward \(skipSeconds) seconds (⇧→)")
 
             Slider(
                 value: Binding(get: { model.currentTime }, set: { model.seek(to: $0) }),
@@ -82,7 +82,7 @@ struct PlayerPanel: View {
             )
             .brandTint()
 
-            Text("\(TimeText.string(model.currentTime)) / \(TimeText.string(model.mediaDuration))")
+            Text(verbatim: "\(TimeText.string(model.currentTime)) / \(TimeText.string(model.mediaDuration))")
                 .font(.callout)
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
@@ -100,7 +100,7 @@ extension PlayerPanel {
         } else {
             HStack(spacing: 1) {
                 Image(systemName: symbol)
-                Text("\(skipSeconds)").font(.caption2).monospacedDigit()
+                Text(verbatim: "\(skipSeconds)").font(.caption2).monospacedDigit()
             }
         }
     }
@@ -196,7 +196,7 @@ struct StylePanel: View {
         let faces = FontFaces.faces(ofFamily: model.style.fontName)
 
         Form {
-            LabeledContent("字型") {
+            LabeledContent("Font") {
                 Button {
                     showFonts.toggle()
                 } label: {
@@ -216,42 +216,42 @@ struct StylePanel: View {
             }
             // Only for fonts that come in more than one weight.
             if faces.count > 1 {
-                Picker("字重", selection: face(among: faces)) {
+                Picker("Weight", selection: face(among: faces)) {
                     ForEach(faces) { Text(FontCatalog.weightLabel($0.styleName)).tag($0.postScriptName) }
                 }
             }
-            LabeledContent("大小") {
+            LabeledContent("Size") {
                 slider($model.style.fontScale, in: 0.03...0.12, value: percent(model.style.fontScale, digits: 1))
             }
-            .help("字體高度占畫面高度的比例")
-            ColorPicker("文字顏色", selection: color(\.textColor), supportsOpacity: false)
-            ColorPicker("描邊顏色", selection: color(\.outlineColor), supportsOpacity: false)
-            LabeledContent("描邊粗細") {
+            .help("Text height as a share of the picture height")
+            ColorPicker("Text Color", selection: color(\.textColor), supportsOpacity: false)
+            ColorPicker("Outline Color", selection: color(\.outlineColor), supportsOpacity: false)
+            LabeledContent("Outline Width") {
                 slider($model.style.outlineScale, in: 0...0.2, value: percent(model.style.outlineScale, digits: 0))
             }
-            .help("描邊寬度占字體大小的比例，0% 為不描邊")
-            Picker("陰影", selection: $model.style.shadow) {
-                Text("無").tag(SubtitleStyle.Shadow.none)
-                Text("柔和").tag(SubtitleStyle.Shadow.soft)
-                Text("明顯").tag(SubtitleStyle.Shadow.strong)
+            .help("Outline width as a share of the text size; 0% means no outline")
+            Picker("Shadow", selection: $model.style.shadow) {
+                Text("None", comment: "No shadow").tag(SubtitleStyle.Shadow.none)
+                Text("Soft", comment: "Shadow").tag(SubtitleStyle.Shadow.soft)
+                Text("Strong", comment: "Shadow").tag(SubtitleStyle.Shadow.strong)
             }
             .pickerStyle(.segmented)
             .brandTint()
-            LabeledContent("高度") {
+            LabeledContent("Position") {
                 slider($model.style.verticalPosition, in: 0...1, value: percent(model.style.verticalPosition, digits: 0))
             }
-            .help("字幕在畫面中的高度：0% 貼齊底部，100% 貼齊頂部")
+            .help("Where subtitles sit in the picture: 0% is the bottom, 100% the top")
             LabeledContent("") {
                 HStack(spacing: 6) {
-                    Button("底部") { model.style.verticalPosition = SubtitleStyle().verticalPosition }
-                    Button("中間") { model.style.verticalPosition = 0.5 }
-                    Button("頂部") { model.style.verticalPosition = 1 - SubtitleStyle().verticalPosition }
+                    Button("Bottom") { model.style.verticalPosition = SubtitleStyle().verticalPosition }
+                    Button("Middle") { model.style.verticalPosition = 0.5 }
+                    Button("Top") { model.style.verticalPosition = 1 - SubtitleStyle().verticalPosition }
                 }
                 .controlSize(.small)
             }
             HStack {
                 Spacer()
-                Button("還原預設值") { model.style = SubtitleStyle() }
+                Button("Restore Defaults") { model.style = SubtitleStyle() }
             }
         }
         .padding(16)

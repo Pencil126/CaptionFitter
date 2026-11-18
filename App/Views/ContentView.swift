@@ -27,20 +27,20 @@ struct ContentView: View {
                 Button {
                     showStyle.toggle()
                 } label: {
-                    Label("字幕樣式", systemImage: "textformat.size")
+                    Label("Subtitle Style", systemImage: "textformat.size")
                 }
                 .popover(isPresented: $showStyle, arrowEdge: .bottom) {
                     StylePanel()
                 }
-                .help("調整預覽與輸出影片的字幕外觀")
+                .help("Adjust how subtitles look in the preview and the exported video")
 
                 Button {
                     model.showExport = true
                 } label: {
-                    Label("輸出", systemImage: "square.and.arrow.up")
+                    Label("Export", systemImage: "square.and.arrow.up")
                 }
                 .disabled(model.document.lines.isEmpty || model.isWorking)
-                .help("輸出 SRT 字幕檔、含字幕的影片，或兩者（⌘E）")
+                .help("Export an SRT subtitle file, a video with subtitles, or both (⌘E)")
             }
         }
         .sheet(isPresented: $model.showExport) {
@@ -67,22 +67,22 @@ struct ContentView: View {
             }
             return true
         }
-        .alert("發生錯誤", isPresented: Binding(
+        .alert("Something Went Wrong", isPresented: Binding(
             get: { model.errorMessage != nil },
             set: { if !$0 { model.errorMessage = nil } }
         )) {
-            Button("好") {}
+            Button("OK") {}
         } message: {
             Text(model.errorMessage ?? "")
         }
-        .alert("尚未下載語音模型", isPresented: $model.needsModel) {
-            Button("開啟模型管理") {
+        .alert("No Speech Model Downloaded", isPresented: $model.needsModel) {
+            Button("Manage Models") {
                 SettingsTab.models.select()
                 openSettings()
             }
-            Button("取消", role: .cancel) {}
+            Button("Cancel", role: .cancel) {}
         } message: {
-            Text("對齊字幕需要語音模型。請先在設定中下載一個模型。")
+            Text("Aligning subtitles needs a speech model. Download one in Settings first.")
         }
     }
 }

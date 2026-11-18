@@ -1,0 +1,2248 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+      "shouldTranslate" : false
+    },
+    "-subtitled" : {
+      "comment" : "Suffix added to the video's file name when exporting with subtitles",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "-字幕"
+          }
+        }
+      }
+    },
+    "%@ (%@)" : {
+      "comment" : "Font weight: the translated name, then the font's own name",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@（%2$@）"
+          }
+        }
+      }
+    },
+    "%@ s" : {
+      "comment" : "How much longer or shorter the lyrics are, e.g. +3 s",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 秒"
+          }
+        }
+      }
+    },
+    "%@ used" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已使用 %@"
+          }
+        }
+      }
+    },
+    "%lld fps" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 格／秒"
+          }
+        }
+      }
+    },
+    "%lld lines" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld line"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld lines"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 行"
+          }
+        }
+      }
+    },
+    "%lld lines, %lld to review" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@lines@, %2$lld to review"
+          },
+          "substitutions" : {
+            "lines" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg line"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg lines"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 行，%2$lld 行待檢查"
+          }
+        }
+      }
+    },
+    "%lld s" : {
+      "comment" : "Seconds, abbreviated",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 秒"
+          }
+        }
+      }
+    },
+    "%lld seconds of speech here aren't in the transcript" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld second of speech here isn't in the transcript"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld seconds of speech here aren't in the transcript"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這裡有 %lld 秒逐字稿以外的講話"
+          }
+        }
+      }
+    },
+    "%lld subtitle lines" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld subtitle line"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld subtitle lines"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共 %lld 行字幕"
+          }
+        }
+      }
+    },
+    "0.1 second earlier" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提前 0.1 秒"
+          }
+        }
+      }
+    },
+    "0.1 second later" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "延後 0.1 秒"
+          }
+        }
+      }
+    },
+    "Add" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增"
+          }
+        }
+      }
+    },
+    "Add a subtitle line" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增一行字幕"
+          }
+        }
+      }
+    },
+    "Add Subtitle" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增字幕"
+          }
+        }
+      }
+    },
+    "Adjust how subtitles look in the preview and the exported video" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "調整預覽與輸出影片的字幕外觀"
+          }
+        }
+      }
+    },
+    "Align Subtitles" : {
+      "comment" : "Undo action name",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "對齊字幕"
+          }
+        }
+      }
+    },
+    "Aligning subtitles needs a speech model. Download one in Settings first." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "對齊字幕需要語音模型。請先在設定中下載一個模型。"
+          }
+        }
+      }
+    },
+    "Aligning subtitles…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "對齊字幕…"
+          }
+        }
+      }
+    },
+    "Apply" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "套用"
+          }
+        }
+      }
+    },
+    "Artist" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌手"
+          }
+        }
+      }
+    },
+    "Available" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可下載"
+          }
+        }
+      }
+    },
+    "Back %lld Seconds" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Back %lld Second"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Back %lld Seconds"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "倒退 %lld 秒"
+          }
+        }
+      }
+    },
+    "Back %lld seconds (⇧←)" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Back %lld second (⇧←)"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Back %lld seconds (⇧←)"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "倒退 %lld 秒（⇧←）"
+          }
+        }
+      }
+    },
+    "Best for This Mac" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最適合這台 Mac"
+          }
+        }
+      }
+    },
+    "Black" : {
+      "comment" : "Font weight",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "極粗"
+          }
+        }
+      }
+    },
+    "Bold" : {
+      "comment" : "Font weight",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粗體"
+          }
+        }
+      }
+    },
+    "Both" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "兩者都要"
+          }
+        }
+      }
+    },
+    "Bottom" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "底部"
+          }
+        }
+      }
+    },
+    "Break Lines Automatically" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動斷行"
+          }
+        }
+      }
+    },
+    "Can't delete %@: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法刪除 %1$@：%2$@"
+          }
+        }
+      }
+    },
+    "Can't download %@: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載 %1$@ 失敗：%2$@"
+          }
+        }
+      }
+    },
+    "Can't get the list of models. Check your internet connection, then click Refresh." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法取得模型清單，請檢查網路連線後重新整理。"
+          }
+        }
+      }
+    },
+    "Can't read the audio: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法讀取音訊：%@"
+          }
+        }
+      }
+    },
+    "Can't read the audio: the format isn't supported." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法讀取音訊：不支援的音訊格式。"
+          }
+        }
+      }
+    },
+    "Can't read the audio." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法讀取音訊。"
+          }
+        }
+      }
+    },
+    "Can't save the SRT file: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法儲存 SRT：%@"
+          }
+        }
+      }
+    },
+    "Can't start exporting the video." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法建立影片輸出工作。"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
+    },
+    "CaptionFitter" : {
+      "shouldTranslate" : false
+    },
+    "Change End Time" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "調整結束時間"
+          }
+        }
+      }
+    },
+    "Change Start Time" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "調整開始時間"
+          }
+        }
+      }
+    },
+    "Change…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更換…"
+          }
+        }
+      }
+    },
+    "Chinese Fonts" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中文字型"
+          }
+        }
+      }
+    },
+    "Choose a file and a transcript on the left, then click Align Subtitles." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在左側選擇檔案與逐字稿，然後按「對齊字幕」。"
+          }
+        }
+      }
+    },
+    "Choose a file, or drag one into the window" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇檔案，或把檔案拖到視窗中"
+          }
+        }
+      }
+    },
+    "Choose a version above and its lyrics appear here" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇上方的版本後，歌詞會顯示在這裡"
+          }
+        }
+      }
+    },
+    "Choose a video or audio file to add subtitles to" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇要加上字幕的影片或音檔"
+          }
+        }
+      }
+    },
+    "Choose the language actually spoken or sung in the video for more accurate recognition." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇影片中實際說或唱的語言，辨識會更準確。"
+          }
+        }
+      }
+    },
+    "Content" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "內容"
+          }
+        }
+      }
+    },
+    "Delete" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除"
+          }
+        }
+      }
+    },
+    "Delete “%@”?" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要刪除「%@」嗎？"
+          }
+        }
+      }
+    },
+    "Delete Subtitle" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除字幕"
+          }
+        }
+      }
+    },
+    "Delete the selected subtitle" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除所選字幕"
+          }
+        }
+      }
+    },
+    "Detect Automatically" : {
+      "comment" : "Speech language option",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測"
+          }
+        }
+      }
+    },
+    "Download" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載"
+          }
+        }
+      }
+    },
+    "Download a Speech Model…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載語音模型…"
+          }
+        }
+      }
+    },
+    "Download Incomplete" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載未完成"
+          }
+        }
+      }
+    },
+    "Download size: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載大小 %@"
+          }
+        }
+      }
+    },
+    "Downloaded" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已下載"
+          }
+        }
+      }
+    },
+    "Drag a file into the window, or press ⌘O to open one" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把檔案拖進視窗，或按 ⌘O 開啟"
+          }
+        }
+      }
+    },
+    "Each line of the transcript becomes one subtitle line." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐字稿的每一行會成為一行字幕。"
+          }
+        }
+      }
+    },
+    "Edit Text" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修改文字"
+          }
+        }
+      }
+    },
+    "End" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "結束"
+          }
+        }
+      }
+    },
+    "English Fonts" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "英文字型"
+          }
+        }
+      }
+    },
+    "Export" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸出"
+          }
+        }
+      }
+    },
+    "Export an SRT subtitle file, a video with subtitles, or both (⌘E)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸出 SRT 字幕檔、含字幕的影片，或兩者（⌘E）"
+          }
+        }
+      }
+    },
+    "Export…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸出…"
+          }
+        }
+      }
+    },
+    "Exporting video…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸出影片…"
+          }
+        }
+      }
+    },
+    "Follow Playback" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跟隨播放"
+          }
+        }
+      }
+    },
+    "Font" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字型"
+          }
+        }
+      }
+    },
+    "Forward %lld Seconds" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Forward %lld Second"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Forward %lld Seconds"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快進 %lld 秒"
+          }
+        }
+      }
+    },
+    "Forward %lld seconds (⇧→)" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Forward %lld second (⇧→)"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Forward %lld seconds (⇧→)"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快進 %lld 秒（⇧→）"
+          }
+        }
+      }
+    },
+    "Frame Rate" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "幀率"
+          }
+        }
+      }
+    },
+    "General" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一般"
+          }
+        }
+      }
+    },
+    "Getting the list of models…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在取得模型清單…"
+          }
+        }
+      }
+    },
+    "Heavy" : {
+      "comment" : "Font weight",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "特粗"
+          }
+        }
+      }
+    },
+    "Jump to this passage and play it" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跳到這一段並播放"
+          }
+        }
+      }
+    },
+    "Keyboard Shortcuts" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快捷鍵"
+          }
+        }
+      }
+    },
+    "Language" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語系"
+          }
+        }
+      }
+    },
+    "Length %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "長度 %@"
+          }
+        }
+      }
+    },
+    "Light" : {
+      "comment" : "Font weight",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "細體"
+          }
+        }
+      }
+    },
+    "Loading speech model…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "載入語音模型…"
+          }
+        }
+      }
+    },
+    "Lyrics" : {
+      "comment" : "Transcript source: search for lyrics",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋歌詞"
+          }
+        }
+      }
+    },
+    "Manage Models" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟模型管理"
+          }
+        }
+      }
+    },
+    "Manage speech models" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理語音模型"
+          }
+        }
+      }
+    },
+    "Mark as reviewed" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標記為已檢查"
+          }
+        }
+      }
+    },
+    "Mark as Reviewed" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標記為已檢查"
+          }
+        }
+      }
+    },
+    "Medium" : {
+      "comment" : "Font weight",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中等"
+          }
+        }
+      }
+    },
+    "Merge" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "與下一行合併"
+          }
+        }
+      }
+    },
+    "Merge Subtitles" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合併字幕"
+          }
+        }
+      }
+    },
+    "Merge the selected subtitle with the next one" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把所選字幕與下一行合併"
+          }
+        }
+      }
+    },
+    "Middle" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中間"
+          }
+        }
+      }
+    },
+    "Model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型"
+          }
+        }
+      }
+    },
+    "Models recognize speech on this Mac; your video is never uploaded. Larger models are more accurate but take longer to download and run. Models marked Recommended suit this Mac." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型在這台 Mac 上辨識語音，不會上傳影片。越大的模型越準確，但下載較久、處理較慢。標示「建議」的模型適合這台 Mac。"
+          }
+        }
+      }
+    },
+    "Most subtitles (%lld of %lld lines) don't match the audio. The transcript may not match the video, or the wrong language may be selected." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大部分字幕（%1$lld／%2$lld 行）在聲音中對不上，逐字稿可能與影片內容不符，或語系選擇有誤。"
+          }
+        }
+      }
+    },
+    "Move All Subtitles Earlier or Later" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將所有字幕提前或延後"
+          }
+        }
+      }
+    },
+    "Needs review: the timing is uncertain; play it to check" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "待檢查：時間不確定，建議播放確認"
+          }
+        }
+      }
+    },
+    "No fonts match “%@”" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到符合「%@」的字型"
+          }
+        }
+      }
+    },
+    "No matching lyrics found. Try other keywords, or paste a transcript instead." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到符合的歌詞。可以改用其他關鍵字，或改用「貼上逐字稿」。"
+          }
+        }
+      }
+    },
+    "No Speech Model Downloaded" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未下載語音模型"
+          }
+        }
+      }
+    },
+    "No Subtitles Yet" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還沒有字幕"
+          }
+        }
+      }
+    },
+    "No text was recognized in this passage. You can use Add to write subtitles yourself." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這一段沒有辨識出文字，可以改用「新增」手動加上字幕。"
+          }
+        }
+      }
+    },
+    "No timing yet" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未設定時間"
+          }
+        }
+      }
+    },
+    "No Video or Audio Selected" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未選擇影片或音檔"
+          }
+        }
+      }
+    },
+    "No voice was found in this file." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在這個檔案中沒有辨識到人聲。"
+          }
+        }
+      }
+    },
+    "None" : {
+      "comment" : "No shadow",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無"
+          }
+        }
+      }
+    },
+    "Not found: this line isn't in the audio and won't be exported until it has a time" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到：聲音中沒有這一行，設定時間前不會輸出"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "好"
+          }
+        }
+      }
+    },
+    "Open Video or Audio…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟影片或音檔…"
+          }
+        }
+      }
+    },
+    "Optional" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選填"
+          }
+        }
+      }
+    },
+    "Original (%@ fps)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原始（%@ 格／秒）"
+          }
+        }
+      }
+    },
+    "Original (%lld×%lld)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原始（%1$lld×%2$lld）"
+          }
+        }
+      }
+    },
+    "Other Available Models" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他可下載的模型"
+          }
+        }
+      }
+    },
+    "Other Fonts" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他字型"
+          }
+        }
+      }
+    },
+    "Outline Color" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "描邊顏色"
+          }
+        }
+      }
+    },
+    "Outline Width" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "描邊粗細"
+          }
+        }
+      }
+    },
+    "Outline width as a share of the text size; 0% means no outline" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "描邊寬度占字體大小的比例，0% 為不描邊"
+          }
+        }
+      }
+    },
+    "Paste" : {
+      "comment" : "Transcript source: paste a transcript",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "貼上逐字稿"
+          }
+        }
+      }
+    },
+    "Paste the transcript here…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在這裡貼上逐字稿…"
+          }
+        }
+      }
+    },
+    "Play" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看"
+          }
+        }
+      }
+    },
+    "Play This Line" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放這一行"
+          }
+        }
+      }
+    },
+    "Play/Pause" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放／暫停"
+          }
+        }
+      }
+    },
+    "Play/Pause (Space)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放／暫停（空白鍵）"
+          }
+        }
+      }
+    },
+    "Playback" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放"
+          }
+        }
+      }
+    },
+    "Position" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高度"
+          }
+        }
+      }
+    },
+    "Previous/Next Frame" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前一格／後一格"
+          }
+        }
+      }
+    },
+    "Reading audio…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀取音訊…"
+          }
+        }
+      }
+    },
+    "Recently Used" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近使用"
+          }
+        }
+      }
+    },
+    "Recognition" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辨識設定"
+          }
+        }
+      }
+    },
+    "Recognize" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辨識字幕"
+          }
+        }
+      }
+    },
+    "Recognize Subtitles" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辨識字幕"
+          }
+        }
+      }
+    },
+    "Recognize the speech in this passage and add it as subtitles. The result may contain mistakes, so check it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動辨識這一段的講話並加上字幕，結果可能有錯字，請再檢查"
+          }
+        }
+      }
+    },
+    "Recognizing speech…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辨識語音…"
+          }
+        }
+      }
+    },
+    "Recognizing this passage…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辨識這一段講話…"
+          }
+        }
+      }
+    },
+    "Recommended" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建議"
+          }
+        }
+      }
+    },
+    "Refresh" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新整理"
+          }
+        }
+      }
+    },
+    "Regular" : {
+      "comment" : "Font weight",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標準"
+          }
+        }
+      }
+    },
+    "Resolution" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "畫質"
+          }
+        }
+      }
+    },
+    "Restore Defaults" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還原預設值"
+          }
+        }
+      }
+    },
+    "Resume Download" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繼續下載"
+          }
+        }
+      }
+    },
+    "Same length" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "長度相符"
+          }
+        }
+      }
+    },
+    "Save SRT Subtitle File" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存 SRT 字幕檔"
+          }
+        }
+      }
+    },
+    "Save Video with Subtitles" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存含字幕的影片"
+          }
+        }
+      }
+    },
+    "Search" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋"
+          }
+        }
+      }
+    },
+    "Search failed: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋失敗：%@"
+          }
+        }
+      }
+    },
+    "Search Fonts" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋字型"
+          }
+        }
+      }
+    },
+    "Seconds" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "秒"
+          }
+        }
+      }
+    },
+    "seconds (negative is earlier)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "秒（負數為提前）"
+          }
+        }
+      }
+    },
+    "Semibold" : {
+      "comment" : "Font weight",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中粗"
+          }
+        }
+      }
+    },
+    "Set to the playhead position" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設為目前播放位置"
+          }
+        }
+      }
+    },
+    "Shadow" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "陰影"
+          }
+        }
+      }
+    },
+    "Shift All" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整體平移"
+          }
+        }
+      }
+    },
+    "Show in Finder" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Finder 中顯示"
+          }
+        }
+      }
+    },
+    "Size" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大小"
+          }
+        }
+      }
+    },
+    "Size unknown" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大小未知"
+          }
+        }
+      }
+    },
+    "Skip Forward/Back" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快進／倒退"
+          }
+        }
+      }
+    },
+    "Soft" : {
+      "comment" : "Shadow",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "柔和"
+          }
+        }
+      }
+    },
+    "Something Went Wrong" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "發生錯誤"
+          }
+        }
+      }
+    },
+    "Song" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌名"
+          }
+        }
+      }
+    },
+    "Source: LRCLIB" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資料來源：LRCLIB"
+          }
+        }
+      }
+    },
+    "Space" : {
+      "comment" : "The space bar",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空白鍵"
+          }
+        }
+      }
+    },
+    "Speech Models" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音模型"
+          }
+        }
+      }
+    },
+    "Split" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分割"
+          }
+        }
+      }
+    },
+    "Split Subtitle" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分割字幕"
+          }
+        }
+      }
+    },
+    "Split the selected subtitle at the playhead, or in the middle when the playhead is outside it" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在播放位置分割所選字幕；播放位置不在該行內時從中間分割"
+          }
+        }
+      }
+    },
+    "Splits the text into subtitle lines by punctuation and length." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依標點與字數把整段文字切成字幕行。"
+          }
+        }
+      }
+    },
+    "SRT subtitle file" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SRT 字幕檔"
+          }
+        }
+      }
+    },
+    "Start" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始"
+          }
+        }
+      }
+    },
+    "Strong" : {
+      "comment" : "Shadow",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明顯"
+          }
+        }
+      }
+    },
+    "Subtitle Style" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字幕樣式"
+          }
+        }
+      }
+    },
+    "Subtitle text" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字幕文字"
+          }
+        }
+      }
+    },
+    "Text Color" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字顏色"
+          }
+        }
+      }
+    },
+    "Text height as a share of the picture height" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字體高度占畫面高度的比例"
+          }
+        }
+      }
+    },
+    "The chosen lyrics differ in length from the video by %lld seconds and may be a different version." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選歌詞版本的長度與影片相差 %lld 秒，可能是不同版本。"
+          }
+        }
+      }
+    },
+    "The chosen lyrics differ in length from the video by %lld seconds." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選歌詞版本的長度與影片相差 %lld 秒。"
+          }
+        }
+      }
+    },
+    "The exported file can't replace the original video." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸出檔不能與原始影片相同。"
+          }
+        }
+      }
+    },
+    "The lyrics database returned an error (HTTP %lld)." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌詞資料庫回應錯誤（HTTP %lld）"
+          }
+        }
+      }
+    },
+    "The model in use" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前使用的模型"
+          }
+        }
+      }
+    },
+    "The subtitles end at %lld%% of the video. The transcript may be incomplete (for example, a repeated section written only once)." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字幕在影片的 %lld%% 處就結束了，逐字稿可能不完整（例如重複的段落只寫了一次）。"
+          }
+        }
+      }
+    },
+    "The timing matches the audio" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "時間已對上聲音"
+          }
+        }
+      }
+    },
+    "The timing of %lld of %lld subtitle lines is uncertain. They're marked in the list; check them one by one." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有 %1$lld／%2$lld 行字幕的時間不確定，已在列表中標示，建議逐一檢查。"
+          }
+        }
+      }
+    },
+    "The transcript is empty." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐字稿是空的。"
+          }
+        }
+      }
+    },
+    "Thin" : {
+      "comment" : "Font weight",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "纖細"
+          }
+        }
+      }
+    },
+    "This file has no audio track." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個檔案沒有音訊軌。"
+          }
+        }
+      }
+    },
+    "This file has no picture, so only an SRT subtitle file can be exported." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個檔案沒有影像，只能輸出 SRT 字幕檔。"
+          }
+        }
+      }
+    },
+    "This file has no video track, so subtitles can't be burned in." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個檔案沒有影像軌，無法燒入字幕。"
+          }
+        }
+      }
+    },
+    "This frees %@. You can download it again later if you need it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "會釋出 %@。之後需要時可以重新下載。"
+          }
+        }
+      }
+    },
+    "This passage doesn't need subtitles" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這一段不需要字幕"
+          }
+        }
+      }
+    },
+    "Top" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "頂部"
+          }
+        }
+      }
+    },
+    "Transcribe" : {
+      "comment" : "Transcript source: transcribe the audio automatically",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動轉錄"
+          }
+        }
+      }
+    },
+    "Transcribe Subtitles" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轉錄字幕"
+          }
+        }
+      }
+    },
+    "Transcribed: not in the transcript, may contain mistakes" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動聽寫：不在逐字稿中，可能有錯字"
+          }
+        }
+      }
+    },
+    "Transcript" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐字稿"
+          }
+        }
+      }
+    },
+    "Transcript Source" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐字稿來源"
+          }
+        }
+      }
+    },
+    "Ultralight" : {
+      "comment" : "Font weight",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "極細"
+          }
+        }
+      }
+    },
+    "Up to %lld characters per line" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每行最多 %lld 個字"
+          }
+        }
+      }
+    },
+    "Use this model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設為使用的模型"
+          }
+        }
+      }
+    },
+    "Video" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "影片"
+          }
+        }
+      }
+    },
+    "Video export failed: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "影片輸出失敗：%@"
+          }
+        }
+      }
+    },
+    "Video or Audio" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "影片或音檔"
+          }
+        }
+      }
+    },
+    "Video with subtitles (MP4)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "含字幕的影片（MP4）"
+          }
+        }
+      }
+    },
+    "Weight" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字重"
+          }
+        }
+      }
+    },
+    "Where subtitles sit in the picture: 0% is the bottom, 100% the top" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字幕在畫面中的高度：0% 貼齊底部，100% 貼齊頂部"
+          }
+        }
+      }
+    },
+    "While you're typing subtitle text, the arrow keys move the cursor and select text instead of moving the playhead." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在輸入字幕文字時，方向鍵用來移動游標與選取文字，不會移動播放位置。"
+          }
+        }
+      }
+    },
+    "Without a transcript, the speech model writes the subtitles from what it hears. You can fix mistakes in the editor afterward." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有逐字稿時，直接由語音模型聽寫出字幕。之後可在編輯器中修正錯字。"
+          }
+        }
+      }
+    },
+    "You can edit them before aligning. Write out a repeated section as many times as it's sung." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可在對齊前修改。重複的段落唱幾次就要有幾次。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

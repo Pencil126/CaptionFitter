@@ -102,7 +102,7 @@ final class ModelManager {
                 // Stopped by the user; partial files stay so the download can resume.
             } catch {
                 if !Task.isCancelled {
-                    self?.errorMessage = "下載 \(id) 失敗：\(error.localizedDescription)"
+                    self?.errorMessage = String(localized: "Can't download \(id): \(CoreMessages.message(for: error))")
                 }
             }
             self?.downloads[id] = nil
@@ -120,7 +120,7 @@ final class ModelManager {
         do {
             try store.delete(id)
         } catch {
-            errorMessage = "無法刪除 \(id)：\(error.localizedDescription)"
+            errorMessage = String(localized: "Can't delete \(id): \(error.localizedDescription)")
         }
         refreshLocal()
     }

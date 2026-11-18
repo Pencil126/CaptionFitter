@@ -422,9 +422,9 @@ public enum SubtitleBurner {
 
         public var errorDescription: String? {
             switch self {
-            case .noVideoTrack: return "這個檔案沒有影像軌，無法燒入字幕。"
-            case .cannotExport: return "無法建立影片輸出工作。"
-            case .exportFailed(let reason): return "影片輸出失敗：\(reason)"
+            case .noVideoTrack: return "This file has no video track, so subtitles can't be burned in."
+            case .cannotExport: return "Can't create the video export session."
+            case .exportFailed(let reason): return "Video export failed: \(reason)"
             }
         }
     }

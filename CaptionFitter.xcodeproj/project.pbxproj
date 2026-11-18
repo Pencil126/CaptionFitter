@@ -100,7 +100,7 @@
 				};
 			};
 			buildConfigurationList = CF0000000000000000000040 /* Build configuration list for PBXProject "CaptionFitter" */;
-			developmentRegion = "zh-Hant";
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
@@ -259,6 +259,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = CaptionFitter;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -288,6 +289,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = CaptionFitter;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

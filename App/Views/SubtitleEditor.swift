@@ -18,9 +18,9 @@ struct SubtitleEditor: View {
 
             if model.document.lines.isEmpty, model.openRegions.isEmpty {
                 ContentUnavailableView(
-                    "還沒有字幕",
+                    "No Subtitles Yet",
                     systemImage: "captions.bubble",
-                    description: Text("在左側選擇檔案與逐字稿，然後按「對齊字幕」。")
+                    description: Text("Choose a file and a transcript on the left, then click Align Subtitles.")
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -35,83 +35,104 @@ struct SubtitleEditor: View {
         }
     }
 
+    /// Buttons show their titles when there is room and only their icons when the pane is
+    /// narrow, so the row never wraps (English titles are longer than Chinese ones).
     private var toolbar: some View {
+        ViewThatFits(in: .horizontal) {
+            toolbarRow.labelStyle(.titleAndIcon)
+            toolbarRow.labelStyle(.iconOnly)
+        }
+    }
+
+    private var toolbarRow: some View {
         @Bindable var model = model
         return HStack(spacing: 12) {
             Button {
                 model.addLine(undoManager: undoManager)
             } label: {
-                Label("新增", systemImage: "plus")
+                Label("Add", systemImage: "plus")
             }
             .disabled(model.mediaURL == nil)
+            .help("Add a subtitle line")
 
             Button {
                 model.splitSelected(undoManager: undoManager)
             } label: {
-                Label("分割", systemImage: "scissors")
+                Label("Split", systemImage: "scissors")
             }
             .disabled(model.selection == nil)
-            .help("在播放位置分割所選字幕；播放位置不在該行內時從中間分割")
+            .help("Split the selected subtitle at the playhead, or in the middle when the playhead is outside it")
 
             Button {
                 model.mergeSelectedWithNext(undoManager: undoManager)
             } label: {
-                Label("與下一行合併", systemImage: "arrow.triangle.merge")
+                Label("Merge", systemImage: "arrow.triangle.merge")
             }
             .disabled(model.selection == nil)
+            .help("Merge the selected subtitle with the next one")
 
             Button(role: .destructive) {
                 model.deleteSelected(undoManager: undoManager)
             } label: {
-                Label("刪除", systemImage: "trash")
+                Label("Delete", systemImage: "trash")
             }
             .disabled(model.selection == nil)
+            .help("Delete the selected subtitle")
 
             Divider().frame(height: 16)
 
             Button {
                 showShift.toggle()
             } label: {
-                Label("整體平移", systemImage: "arrow.left.and.right")
+                Label("Shift All", systemImage: "arrow.left.and.right")
             }
             .disabled(model.document.lines.isEmpty)
+            .help("Move All Subtitles Earlier or Later")
             .popover(isPresented: $showShift, arrowEdge: .bottom) { shiftPopover }
 
-            Spacer()
+            Spacer(minLength: 8)
 
             if !model.document.lines.isEmpty {
                 let lines = model.document.lines
                 let doubtful = lines.filter { $0.confidence != .good && $0.confidence != .manual }.count
-                Text(doubtful > 0 ? "\(lines.count) 行，\(doubtful) 行待檢查" : "\(lines.count) 行")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+                Group {
+                    if doubtful > 0 {
+                        Text("\(lines.count) lines, \(doubtful) to review")
+                    } else {
+                        Text("\(lines.count) lines")
+                    }
+                }
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize()
             }
-            Toggle("跟隨播放", isOn: $model.followPlayback)
+            Toggle("Follow Playback", isOn: $model.followPlayback)
                 .toggleStyle(.checkbox)
                 .brandTint()
+                .fixedSize()
         }
-        .labelStyle(.titleAndIcon)
+        .lineLimit(1)
         .buttonStyle(.borderless)
     }
 
     private var shiftPopover: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("將所有字幕提前或延後").font(.headline)
+            Text("Move All Subtitles Earlier or Later").font(.headline)
             HStack {
-                TextField("秒", value: $shiftSeconds, format: .number.precision(.fractionLength(0...2)))
+                TextField("Seconds", value: $shiftSeconds, format: .number.precision(.fractionLength(0...2)))
                     .frame(width: 70)
                     .textFieldStyle(.roundedBorder)
-                Text("秒（負數為提前）")
+                Text("seconds (negative is earlier)")
                 Stepper("", value: $shiftSeconds, step: 0.1).labelsHidden()
             }
             HStack {
                 Spacer()
                 Button {
                     let delta = shiftSeconds
-                    model.edit("整體平移", undoManager: undoManager) { $0.shiftAll(by: delta) }
+                    model.edit("Shift All", undoManager: undoManager) { $0.shiftAll(by: delta) }
                     showShift = false
                 } label: {
-                    BrandButtonLabel("套用")
+                    BrandButtonLabel("Apply")
                 }
                 .keyboardShortcut(.defaultAction)
                 .brandTint()
@@ -210,12 +231,12 @@ private struct UnscriptedRegionRow: View {
             Image(systemName: "sparkles")
                 .foregroundStyle(Self.gradient)
                 .frame(width: 16)
-            Text("\(TimeText.string(region.range.lowerBound)) → \(TimeText.string(region.range.upperBound))")
+            Text(verbatim: "\(TimeText.string(region.range.lowerBound)) → \(TimeText.string(region.range.upperBound))")
                 .monospacedDigit()
                 .lineLimit(1)
                 .fixedSize()
             // The row is tall enough for the sentence to wrap when the window is narrow.
-            Text("這裡有 \(seconds) 秒逐字稿以外的講話")
+            Text("\(seconds) seconds of speech here aren't in the transcript")
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
                 .layoutPriority(-1)
@@ -224,29 +245,29 @@ private struct UnscriptedRegionRow: View {
                 ProgressView(value: model.workProgress)
                     .brandTint()
                     .frame(width: 80)
-                Button("取消") { model.cancelWork() }
+                Button("Cancel") { model.cancelWork() }
             } else {
                 Button {
                     model.seek(to: region.range.lowerBound)
                     if !model.isPlaying { model.togglePlayback() }
                 } label: {
-                    Label("查看", systemImage: "play.circle")
+                    Label("Play", systemImage: "play.circle")
                 }
-                .help("跳到這一段並播放")
+                .help("Jump to this passage and play it")
                 Button {
                     model.fillRegion(region, using: models, undoManager: undoManager)
                 } label: {
-                    Label("辨識字幕", systemImage: "wand.and.stars")
+                    Label("Recognize", systemImage: "wand.and.stars")
                 }
                 .disabled(model.isWorking)
-                .help("自動辨識這一段的講話並加上字幕，結果可能有錯字，請再檢查")
+                .help("Recognize the speech in this passage and add it as subtitles. The result may contain mistakes, so check it.")
                 Button {
                     model.dismissRegion(region.id)
                 } label: {
                     Image(systemName: "xmark")
                 }
                 .disabled(model.isWorking)
-                .help("這一段不需要字幕")
+                .help("This passage doesn't need subtitles")
             }
         }
         .labelStyle(.titleAndIcon)
@@ -293,30 +314,30 @@ private struct SubtitleRow: View {
             .onHover { hoveringMarker = $0 }
             .onTapGesture {
                 guard status != nil else { return }
-                model.edit("標記為已檢查", undoManager: undoManager) { $0.markReviewed(line.id) }
+                model.edit("Mark as Reviewed", undoManager: undoManager) { $0.markReviewed(line.id) }
             }
-            .help(status == nil ? "時間已對上聲音" : "標記為已檢查")
+            .help(status == nil ? LocalizedStringKey("The timing matches the audio") : "Mark as reviewed")
             .accessibilityAddTraits(status == nil ? [] : .isButton)
-            .accessibilityLabel(status == nil ? "" : "標記為已檢查")
+            .accessibilityLabel(status == nil ? Text(verbatim: "") : Text("Mark as reviewed"))
 
-            Text("\(index)")
+            Text(verbatim: "\(index)")
                 .foregroundStyle(.tertiary)
                 .frame(width: 30, alignment: .trailing)
 
             Group {
                 if line.duration == 0 {
-                    Text("尚未設定時間")
+                    Text("No timing yet")
                 } else {
-                    Text("\(TimeText.string(line.start)) → \(TimeText.string(line.end))")
+                    Text(verbatim: "\(TimeText.string(line.start)) → \(TimeText.string(line.end))")
                 }
             }
             .foregroundStyle(.secondary)
             .frame(width: 150, alignment: .leading)
 
-            TextField("字幕文字", text: Binding(
+            TextField("Subtitle text", text: Binding(
                 get: { line.text },
                 set: { newValue in
-                    model.edit("修改文字", undoManager: undoManager, coalesceKey: "text-\(line.id)") {
+                    model.edit("Edit Text", undoManager: undoManager, coalesceKey: "text-\(line.id)") {
                         $0.setText(newValue, for: line.id)
                     }
                 }
@@ -356,12 +377,12 @@ private struct SubtitleRow: View {
     }
 
     /// Colour and explanation for lines that deserve a look; nil for lines that are fine.
-    private var status: (color: Color, label: String)? {
+    private var status: (color: Color, label: LocalizedStringKey)? {
         switch line.confidence {
         case .good, .manual: return nil
-        case .partial: return (.orange, "待檢查：時間不確定，建議播放確認")
-        case .interpolated: return (.red, "找不到：聲音中沒有這一行，設定時間前不會輸出")
-        case .transcribed: return (.blue, "自動聽寫：不在逐字稿中，可能有錯字")
+        case .partial: return (.orange, "Needs review: the timing is uncertain; play it to check")
+        case .interpolated: return (.red, "Not found: this line isn't in the audio and won't be exported until it has a time")
+        case .transcribed: return (.blue, "Transcribed: not in the transcript, may contain mistakes")
         }
     }
 }
@@ -375,34 +396,34 @@ private struct LineInspector: View {
     var body: some View {
         HStack(spacing: 18) {
             timeControls(
-                title: "開始", value: line.start,
-                set: { value in model.edit("調整開始時間", undoManager: undoManager) { $0.setStart(value, for: line.id) } }
+                title: "Start", value: line.start,
+                set: { value in model.edit("Change Start Time", undoManager: undoManager) { $0.setStart(value, for: line.id) } }
             )
             timeControls(
-                title: "結束", value: line.end,
-                set: { value in model.edit("調整結束時間", undoManager: undoManager) { $0.setEnd(value, for: line.id) } }
+                title: "End", value: line.end,
+                set: { value in model.edit("Change End Time", undoManager: undoManager) { $0.setEnd(value, for: line.id) } }
             )
             Spacer()
             Button {
                 model.seek(to: line.start)
                 if !model.isPlaying { model.togglePlayback() }
             } label: {
-                Label("播放這一行", systemImage: "play.circle")
+                Label("Play This Line", systemImage: "play.circle")
             }
         }
         .buttonStyle(.borderless)
     }
 
-    private func timeControls(title: String, value: Double, set: @escaping (Double) -> Void) -> some View {
+    private func timeControls(title: LocalizedStringKey, value: Double, set: @escaping (Double) -> Void) -> some View {
         HStack(spacing: 6) {
             Text(title).foregroundStyle(.secondary)
             TimeField(value: value, onCommit: set)
             Button { set(value - 0.1) } label: { Image(systemName: "minus") }
-                .help("提前 0.1 秒")
+                .help("0.1 second earlier")
             Button { set(value + 0.1) } label: { Image(systemName: "plus") }
-                .help("延後 0.1 秒")
+                .help("0.1 second later")
             Button { set(model.currentTime) } label: { Image(systemName: "scope") }
-                .help("設為目前播放位置")
+                .help("Set to the playhead position")
         }
     }
 }

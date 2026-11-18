@@ -11,14 +11,14 @@ struct ExportSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("輸出").font(.title3.bold())
+            Text("Export").font(.title3.bold())
                 .padding([.horizontal, .top], 20)
 
             Form {
-                Picker("內容", selection: content) {
-                    Text("SRT 字幕檔").tag(ExportContent.srt)
-                    Text("含字幕的影片（MP4）").tag(ExportContent.video)
-                    Text("兩者都要").tag(ExportContent.both)
+                Picker("Content", selection: content) {
+                    Text("SRT subtitle file").tag(ExportContent.srt)
+                    Text("Video with subtitles (MP4)").tag(ExportContent.video)
+                    Text("Both").tag(ExportContent.both)
                 }
                 .pickerStyle(.radioGroup)
                 .brandTint()
@@ -26,24 +26,24 @@ struct ExportSheet: View {
 
                 if let info = model.videoInfo, model.hasVideo {
                     Section {
-                        Picker("畫質", selection: resolution(info)) {
-                            Text("原始（\(Int(info.size.width))×\(Int(info.size.height))）").tag(VideoExportOptions.Resolution.original)
+                        Picker("Resolution", selection: resolution(info)) {
+                            Text("Original (\(Int(info.size.width))×\(Int(info.size.height)))").tag(VideoExportOptions.Resolution.original)
                             ForEach([VideoExportOptions.Resolution.p1080, .p720, .p480].filter { VideoExportOptions.applies($0, to: info) }) {
-                                Text("\($0.rawValue)p").tag($0)
+                                Text(verbatim: "\($0.rawValue)p").tag($0)
                             }
                         }
-                        Picker("幀率", selection: frameRate(info)) {
-                            Text("原始（\(Self.rate(info.frameRate)) 格／秒）").tag(VideoExportOptions.FrameRate.original)
+                        Picker("Frame Rate", selection: frameRate(info)) {
+                            Text("Original (\(Self.rate(info.frameRate)) fps)").tag(VideoExportOptions.FrameRate.original)
                             ForEach([VideoExportOptions.FrameRate.fps60, .fps30].filter { VideoExportOptions.applies($0, to: info) }) {
-                                Text("\($0.rawValue) 格／秒").tag($0)
+                                Text("\($0.rawValue) fps").tag($0)
                             }
                         }
                     } header: {
-                        Text("影片")
+                        Text("Video")
                     }
                     .disabled(content.wrappedValue == .srt)
                 } else {
-                    Text("這個檔案沒有影像，只能輸出 SRT 字幕檔。")
+                    Text("This file has no picture, so only an SRT subtitle file can be exported.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
@@ -52,7 +52,7 @@ struct ExportSheet: View {
 
             HStack {
                 Spacer()
-                Button("取消", role: .cancel) { dismiss() }
+                Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Button {
                     let chosen = content.wrappedValue
@@ -61,7 +61,7 @@ struct ExportSheet: View {
                     // Let the sheet close before the save dialog opens.
                     DispatchQueue.main.async { model.export(chosen, options: options) }
                 } label: {
-                    BrandButtonLabel("輸出…")
+                    BrandButtonLabel("Export…")
                 }
                 .keyboardShortcut(.defaultAction)
                 .brandTint()

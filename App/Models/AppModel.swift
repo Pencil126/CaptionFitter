@@ -9,11 +9,11 @@ enum ScriptSource: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var title: String {
+    var title: LocalizedStringResource {
         switch self {
-        case .paste: return "貼上逐字稿"
-        case .transcribe: return "自動轉錄"
-        case .lyrics: return "搜尋歌詞"
+        case .paste: return LocalizedStringResource("Paste", comment: "Transcript source: paste a transcript")
+        case .transcribe: return LocalizedStringResource("Transcribe", comment: "Transcript source: transcribe the audio automatically")
+        case .lyrics: return LocalizedStringResource("Lyrics", comment: "Transcript source: search for lyrics")
         }
     }
 }
@@ -149,7 +149,7 @@ final class AppModel {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.movie, .audio]
         panel.allowsMultipleSelection = false
-        panel.message = "選擇要加上字幕的影片或音檔"
+        panel.message = String(localized: "Choose a video or audio file to add subtitles to")
         if panel.runModal() == .OK, let url = panel.url {
             loadMedia(url)
         }
@@ -238,7 +238,7 @@ final class AppModel {
                 let found = try await LRCLIBClient().search(track: track, artist: artist)
                 searchResults = LRCLIBClient.rank(found, mediaDuration: duration)
                 if searchResults.isEmpty {
-                    searchMessage = "找不到符合的歌詞。可以改用其他關鍵字，或改用「貼上逐字稿」。"
+                    searchMessage = String(localized: "No matching lyrics found. Try other keywords, or paste a transcript instead.")
                     selectedResultID = nil
                 } else if let first = searchResults.first {
                     // Preselect the version closest in length; the user can pick another.
@@ -246,7 +246,7 @@ final class AppModel {
                 }
             } catch {
                 searchResults = []
-                searchMessage = "搜尋失敗：\(error.localizedDescription)"
+                searchMessage = String(localized: "Search failed: \(CoreMessages.message(for: error))")
             }
         }
     }
@@ -317,7 +317,7 @@ final class AppModel {
                 let engine = try await loadEngine(modelID, from: store)
                 try Task.checkCancellation()
 
-                workTitle = "讀取音訊…"
+                workTitle = String(localized: "Reading audio…")
                 let samples = try await Task.detached { try await AudioExtractor.samples(from: url) }.value
                 try Task.checkCancellation()
 
@@ -333,13 +333,13 @@ final class AppModel {
                 var regions: [ClosedRange<Double>] = []
                 switch source {
                 case .transcribe:
-                    workTitle = "辨識語音…"
+                    workTitle = String(localized: "Recognizing speech…")
                     let recognition = try await engine.recognize(samples: samples, language: language, progress: reportProgress)
                     result = try CaptionBuilder.transcribe(recognition, maxWidth: maxWidth, traditionalChinese: language.prefersTraditionalChinese, mediaDuration: duration)
                 case .paste, .lyrics:
                     // The model reads the script against the audio, which also works for
                     // singing and noisy recordings where free transcription gets the words wrong.
-                    workTitle = "對齊字幕…"
+                    workTitle = String(localized: "Aligning subtitles…")
                     let started = Date()
                     let alignment = try await engine.align(scriptLines: lines, samples: samples, language: language, progress: reportProgress)
                     result = alignment.lines
@@ -363,12 +363,12 @@ final class AppModel {
                 lastCoalesceKey = nil
                 report = AlignmentReport(lines: result, mediaDuration: duration, scriptDuration: scriptDuration)
                 if !previous.lines.isEmpty {
-                    registerUndo(previous, name: "對齊字幕", undoManager: undoManager)
+                    registerUndo(previous, name: String(localized: "Align Subtitles", comment: "Undo action name"), undoManager: undoManager)
                 }
             } catch is CancellationError {
                 // Cancelled by the user; keep whatever was there before.
             } catch {
-                if !Task.isCancelled { errorMessage = error.localizedDescription }
+                if !Task.isCancelled { errorMessage = CoreMessages.message(for: error) }
             }
         }
     }
@@ -379,7 +379,7 @@ final class AppModel {
 
     private func loadEngine(_ modelID: String, from store: ModelStore) async throws -> WhisperRecognizer {
         if let recognizer, recognizer.modelID == modelID { return recognizer.engine }
-        workTitle = "載入語音模型…"
+        workTitle = String(localized: "Loading speech model…")
         recognizer = nil
         let engine = try await WhisperRecognizer(modelFolder: store.folder(for: modelID), supportFolder: store.baseFolder)
         recognizer = (modelID, engine)
@@ -415,7 +415,7 @@ final class AppModel {
                 let engine = try await loadEngine(modelID, from: store)
                 try Task.checkCancellation()
 
-                workTitle = "辨識這一段講話…"
+                workTitle = String(localized: "Recognizing this passage…")
                 let samples = try await Task.detached { try await AudioExtractor.samples(from: url) }.value
                 try Task.checkCancellation()
                 workProgress = 0
@@ -428,14 +428,14 @@ final class AppModel {
                 try Task.checkCancellation()
 
                 guard !lines.isEmpty else {
-                    errorMessage = "這一段沒有辨識出文字，可以改用「新增」手動加上字幕。"
+                    errorMessage = String(localized: "No text was recognized in this passage. You can use Add to write subtitles yourself.")
                     return
                 }
-                edit("辨識字幕", undoManager: undoManager) { $0.insert(lines) }
+                edit("Recognize Subtitles", undoManager: undoManager) { $0.insert(lines) }
             } catch is CancellationError {
                 // Cancelled by the user; nothing was added.
             } catch {
-                if !Task.isCancelled { errorMessage = error.localizedDescription }
+                if !Task.isCancelled { errorMessage = CoreMessages.message(for: error) }
             }
         }
     }
@@ -449,13 +449,13 @@ final class AppModel {
 
     /// Applies a change to the subtitles and makes it undoable. Changes sharing a
     /// `coalesceKey` (typing in one line) collapse into a single undo step.
-    func edit(_ name: String, undoManager: UndoManager?, coalesceKey: String? = nil, _ change: (inout SubtitleDocument) -> Void) {
+    func edit(_ name: LocalizedStringResource, undoManager: UndoManager?, coalesceKey: String? = nil, _ change: (inout SubtitleDocument) -> Void) {
         let before = document
         change(&document)
         guard before != document else { return }
         if let coalesceKey, coalesceKey == lastCoalesceKey { return }
         lastCoalesceKey = coalesceKey
-        registerUndo(before, name: name, undoManager: undoManager)
+        registerUndo(before, name: String(localized: name), undoManager: undoManager)
     }
 
     private func registerUndo(_ snapshot: SubtitleDocument, name: String, undoManager: UndoManager?) {
@@ -476,7 +476,7 @@ final class AppModel {
 
     func addLine(undoManager: UndoManager?) {
         var newID: SubtitleLine.ID?
-        edit("新增字幕", undoManager: undoManager) { document in
+        edit("Add Subtitle", undoManager: undoManager) { document in
             if let selection {
                 newID = document.insertLine(after: selection)
             } else {
@@ -488,7 +488,7 @@ final class AppModel {
 
     func deleteSelected(undoManager: UndoManager?) {
         guard let id = selection, let index = document.index(of: id) else { return }
-        edit("刪除字幕", undoManager: undoManager) { $0.delete(id) }
+        edit("Delete Subtitle", undoManager: undoManager) { $0.delete(id) }
         let lines = document.lines
         selection = lines.isEmpty ? nil : lines[min(index, lines.count - 1)].id
     }
@@ -497,12 +497,12 @@ final class AppModel {
     func splitSelected(undoManager: UndoManager?) {
         guard let id = selection else { return }
         let time = currentTime
-        edit("分割字幕", undoManager: undoManager) { $0.split(id, time: time) }
+        edit("Split Subtitle", undoManager: undoManager) { $0.split(id, time: time) }
     }
 
     func mergeSelectedWithNext(undoManager: UndoManager?) {
         guard let id = selection else { return }
-        edit("合併字幕", undoManager: undoManager) { $0.mergeWithNext(id) }
+        edit("Merge Subtitles", undoManager: undoManager) { $0.mergeWithNext(id) }
     }
 
     // MARK: - Export
@@ -518,15 +518,15 @@ final class AppModel {
         var subtitleURL: URL?
         if content != .video || !hasVideo {
             let type = UTType(filenameExtension: "srt") ?? .plainText
-            guard let url = askDestination(type: type, name: baseName + ".srt", directory: directory, title: "儲存 SRT 字幕檔") else { return }
+            guard let url = askDestination(type: type, name: baseName + ".srt", directory: directory, title: String(localized: "Save SRT Subtitle File")) else { return }
             subtitleURL = url
             directory = url.deletingLastPathComponent()
         }
         var videoURL: URL?
         if wantsVideo {
-            guard let url = askDestination(type: .mpeg4Movie, name: baseName + "-字幕.mp4", directory: directory, title: "儲存含字幕的影片") else { return }
+            guard let url = askDestination(type: .mpeg4Movie, name: baseName + String(localized: "-subtitled", comment: "Suffix added to the video's file name when exporting with subtitles") + ".mp4", directory: directory, title: String(localized: "Save Video with Subtitles")) else { return }
             guard url.standardizedFileURL != mediaURL.standardizedFileURL else {
-                errorMessage = "輸出檔不能與原始影片相同。"
+                errorMessage = String(localized: "The exported file can't replace the original video.")
                 return
             }
             videoURL = url
@@ -536,7 +536,7 @@ final class AppModel {
             do {
                 try SRTWriter.write(document.lines, to: subtitleURL)
             } catch {
-                errorMessage = "無法儲存 SRT：\(error.localizedDescription)"
+                errorMessage = String(localized: "Can't save the SRT file: \(error.localizedDescription)")
                 return
             }
         }
@@ -550,7 +550,7 @@ final class AppModel {
         player.pause()
         isWorking = true
         errorMessage = nil
-        workTitle = "輸出影片…"
+        workTitle = String(localized: "Exporting video…")
         workProgress = 0
 
         workTask = Task {
@@ -569,7 +569,7 @@ final class AppModel {
             } catch is CancellationError {
                 // Cancelled by the user; the partial file has been removed.
             } catch {
-                if !Task.isCancelled { errorMessage = error.localizedDescription }
+                if !Task.isCancelled { errorMessage = CoreMessages.message(for: error) }
             }
         }
     }

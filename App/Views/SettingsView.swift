@@ -18,10 +18,10 @@ struct SettingsView: View {
     var body: some View {
         TabView(selection: $tab) {
             GeneralSettingsView()
-                .tabItem { Label("一般", systemImage: "gearshape") }
+                .tabItem { Label("General", systemImage: "gearshape") }
                 .tag(SettingsTab.general.rawValue)
             ModelSettingsView()
-                .tabItem { Label("語音模型", systemImage: "waveform") }
+                .tabItem { Label("Speech Models", systemImage: "waveform") }
                 .tag(SettingsTab.models.rawValue)
         }
     }
@@ -33,8 +33,8 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
-            Section("播放") {
-                LabeledContent("快進／倒退") {
+            Section("Playback") {
+                LabeledContent("Skip Forward/Back") {
                     HStack(spacing: 8) {
                         Slider(
                             value: Binding(get: { Double(skipSeconds) }, set: { skipSeconds = Int($0.rounded()) }),
@@ -42,19 +42,19 @@ struct GeneralSettingsView: View {
                             step: 1
                         )
                         .brandTint()
-                        Text("\(skipSeconds) 秒")
+                        Text("\(skipSeconds) s", comment: "Seconds, abbreviated")
                             .monospacedDigit()
                             .frame(width: 44, alignment: .trailing)
                     }
                 }
             }
-            Section("快捷鍵") {
-                shortcut("空白鍵", "播放／暫停")
-                shortcut("⇧←", "倒退 \(skipSeconds) 秒")
-                shortcut("⇧→", "快進 \(skipSeconds) 秒")
-                shortcut("←　→", "前一格／後一格")
-                shortcut("⌘E", "輸出")
-                Text("正在輸入字幕文字時，方向鍵用來移動游標與選取文字，不會移動播放位置。")
+            Section("Keyboard Shortcuts") {
+                shortcut(String(localized: "Space", comment: "The space bar"), "Play/Pause")
+                shortcut("⇧←", "Back \(skipSeconds) Seconds")
+                shortcut("⇧→", "Forward \(skipSeconds) Seconds")
+                shortcut("←　→", "Previous/Next Frame")
+                shortcut("⌘E", "Export")
+                Text("While you're typing subtitle text, the arrow keys move the cursor and select text instead of moving the playhead.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -65,7 +65,7 @@ struct GeneralSettingsView: View {
         .frame(width: 640, height: 520)
     }
 
-    private func shortcut(_ keys: String, _ action: String) -> some View {
+    private func shortcut(_ keys: String, _ action: LocalizedStringKey) -> some View {
         LabeledContent(action) {
             Text(keys).monospaced().foregroundStyle(.secondary)
         }

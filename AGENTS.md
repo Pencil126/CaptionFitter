@@ -14,6 +14,7 @@ CaptionFitter 是原生 Swift／SwiftUI 的 macOS App：把使用者提供的逐
 - **唯一的第三方依賴是 WhisperKit**。新增其他依賴前先徵求同意。
 - **不用 XcodeGen、Tuist 等專案產生工具**，直接維護 `CaptionFitter.xcodeproj`。
 - **介面用詞是「逐字稿」與「字幕」**，不要寫「文稿」。「歌詞」只出現在「搜尋歌詞」這個來源選項，其他地方不強調歌曲。
+- **介面有英文與繁體中文，跟隨系統語言**。英文是原文（開發語言），繁體中文是翻譯；系統語言兩者都不是時顯示英文。不加 App 內的語言選單，使用者可在系統設定中為單一 App 指定語言。
 - **使用者提供的逐字稿不做簡轉繁**，照原樣使用。自動辨識出來的文字則在語系為繁體中文時轉成繁體。
 - **Repo 是公開的**。不要提交影音檔、字幕檔、歌詞、模型檔，也不要把個人路徑、帳號或金鑰寫進程式或文件。`.gitignore` 已排除常見的副檔名。
 
@@ -22,15 +23,16 @@ CaptionFitter 是原生 Swift／SwiftUI 的 macOS App：把使用者提供的逐
 - 一律用**繁體中文（台灣）**回覆。
 - 需求不只一種做法時，**先列方案並等確認，再實作**。
 - **只在被要求時提交**。提交前先把訊息給對方看過；對方只修改訊息而沒說要提交時，不算確認。
-- 提交訊息用繁體中文，第一行加類型前綴，例如 `Feature: …`、`Chore: …`。內文如實寫出哪些部分驗證過、哪些沒有。
+- 提交訊息用繁體中文，第一行加類型前綴，例如 `Feature: …`、`Chore: …`。內文只寫改了什麼，不寫驗證事項；驗證結果在回報中說明。
 - 回報結果要誠實：沒重現的問題就說沒重現，沒驗證的介面就說沒驗證。
 
 ## 結構
 
 ```
 App/                        SwiftUI 介面（Xcode 的資料夾同步群組）
-  Models/                   AppModel（主視窗狀態）、ModelManager、FontCatalog、AlignmentLog
+  Models/                   AppModel（主視窗狀態）、ModelManager、FontCatalog、AlignmentLog、CoreMessages
   Views/                    各面板、設定、輸出視窗、字型清單、播放快捷鍵
+  Localizable.xcstrings     字串目錄：英文原文與繁體中文翻譯
 Packages/CaptionFitterCore/ 核心邏輯的 Swift Package，不依賴介面
   Sources/CaptionFitterCore/
   Sources/captionfitter-cli/ 命令列工具，用來不開 App 測試核心
@@ -66,7 +68,13 @@ cd Packages/CaptionFitterCore && swift test
 xcodebuild -project CaptionFitter.xcodeproj -scheme CaptionFitter -configuration Debug -derivedDataPath .build/xcode build
 ```
 
-改動後兩者都要通過。專案擁有者通常從 Xcode 執行 App，所以你建置成功不代表對方看到的是新版，要請對方重新執行。
+改動後兩者都要通過。動到介面文字時，再跑一次翻譯檢查（CI 也會跑）：
+
+```bash
+.github/scripts/check-localizations.sh
+```
+
+專案擁有者通常從 Xcode 執行 App，所以你建置成功不代表對方看到的是新版，要請對方重新執行。
 
 ### 命令列工具
 
@@ -96,7 +104,54 @@ cd Packages/CaptionFitterCore && swift run -c release captionfitter-cli
 
 ## 程式風格
 
-- 程式碼與註解用英文，介面文字用繁體中文。
+- 程式碼、註解與介面原文都用英文；繁體中文寫在 `App/Localizable.xcstrings`。
 - 註解寫「為什麼」，不要複述程式在做什麼。
-- 介面文字目前直接寫在程式裡，沒有使用字串目錄。
 - 核心套件的公開 API 變動時，同步更新命令列工具與 App 的呼叫處。
+
+## 介面文字與翻譯
+
+介面文字用 Xcode 的字串目錄（`App/Localizable.xcstrings`）。程式裡寫英文，Xcode 依英文找出對應的翻譯，所以**英文就是 key**。
+
+### 寫法
+
+| 情況 | 寫法 |
+|---|---|
+| SwiftUI 直接寫字面值（`Text`、`Button`、`Label`、`.help`、`.alert`…） | 直接寫英文，會自動翻譯 |
+| 自訂元件或函式要收介面文字 | 參數用 `LocalizedStringKey`；用 `String` 不會被翻譯 |
+| 先存成 `String` 再顯示（錯誤訊息、進度文字、存檔對話框標題） | `String(localized: "…")` |
+| enum 的顯示名稱、復原動作名稱（`AppModel.edit(_:)`） | `LocalizedStringResource` |
+| 三元運算選兩段文字 | 第一個分支寫成 `LocalizedStringKey("…")`，否則可能被當成 `String` 而不翻譯 |
+| 不需翻譯的文字（時間、數字、快捷鍵符號） | `Text(verbatim:)` |
+
+- 一句話寫成一個完整字串，用插值放數字，不要把片段串接起來，譯者才看得到整句。
+- 會是 1 的數量（行數、秒數）要在目錄中設定英文的單複數（one／other）。
+- 字意不明時加 `comment:`，例如同一個英文字可能是名詞也可能是按鈕。
+- 全形標點（「」（）／）只出現在中文翻譯；英文原文用半形。
+- **核心套件不寫介面句子**。要讓使用者看到的訊息，在核心回傳 enum（例如 `AlignmentReport.Warning`）或錯誤 case，由 `App/Models/CoreMessages.swift` 組成句子。核心錯誤的 `errorDescription` 是給命令列看的英文。
+- 語言名稱（日本語、한국어…）用各語言自己的寫法，不翻譯。
+
+### 新增或修改文字
+
+1. **新增**：程式寫英文 → 在 Xcode 建置一次，Xcode 會把新字串加進字串目錄（標示 NEW）→ 在目錄中填繁體中文。用命令列建置**不會**更新目錄檔，這時要直接編輯 `.xcstrings`。
+2. **只改中文**：只改字串目錄。
+3. **改英文**：英文是 key，改了就是新字串。把中文搬到新 key，刪掉 Xcode 標示為 STALE 的舊項目。
+4. 提交前跑 `.github/scripts/check-localizations.sh`，有缺少翻譯的字串會列出來並失敗。
+5. 用 Xcode 的 Edit Scheme › Run › Options › App Language 切換 English／繁體中文檢查畫面；選「Double-Length Pseudolanguage」可找出文字被截斷的地方（英文通常比中文長）。
+
+### 用詞對照
+
+沿用英文 README 的用詞：
+
+| 中文 | 英文 |
+|---|---|
+| 逐字稿 | transcript |
+| 字幕 | subtitles |
+| 對齊 | align |
+| 語音模型 | speech model |
+| 自動轉錄 | transcribe automatically |
+| 搜尋歌詞 | search lyrics |
+| 含字幕的影片 | video with subtitles |
+| 待檢查 | needs review |
+| 找不到（聲音中沒有這一行） | not found |
+| 自動聽寫（不在逐字稿中） | transcribed |
+| 逐字稿以外的講話 | speech that isn't in the transcript |

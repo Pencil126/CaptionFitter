@@ -15,8 +15,8 @@ struct ModelSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("語音模型").font(.title3.bold())
-                Text("模型在這台 Mac 上辨識語音，不會上傳影片。越大的模型越準確，但下載較久、處理較慢。標示「建議」的模型適合這台 Mac。")
+                Text("Speech Models").font(.title3.bold())
+                Text("Models recognize speech on this Mac; your video is never uploaded. Larger models are more accurate but take longer to download and run. Models marked Recommended suit this Mac.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -24,19 +24,19 @@ struct ModelSettingsView: View {
 
             List {
                 if !downloaded.isEmpty {
-                    Section("已下載") {
+                    Section("Downloaded") {
                         ForEach(downloaded) { row($0) }
                     }
                 }
-                Section(downloaded.isEmpty ? "可下載" : "其他可下載的模型") {
+                Section(downloaded.isEmpty ? LocalizedStringKey("Available") : "Other Available Models") {
                     if available.isEmpty {
                         if models.isLoading {
                             HStack {
                                 ProgressView().controlSize(.small)
-                                Text("正在取得模型清單…").foregroundStyle(.secondary)
+                                Text("Getting the list of models…").foregroundStyle(.secondary)
                             }
                         } else {
-                            Text("無法取得模型清單，請檢查網路連線後重新整理。")
+                            Text("Can't get the list of models. Check your internet connection, then click Refresh.")
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -54,7 +54,7 @@ struct ModelSettingsView: View {
 
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("已使用 \(sizeFormatter.string(fromByteCount: models.totalSize))")
+                    Text("\(sizeFormatter.string(fromByteCount: models.totalSize)) used")
                     Text(models.store.modelsFolder.path)
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -63,11 +63,11 @@ struct ModelSettingsView: View {
                         .textSelection(.enabled)
                 }
                 Spacer()
-                Button("在 Finder 中顯示") { models.revealInFinder() }
+                Button("Show in Finder") { models.revealInFinder() }
                 Button {
                     Task { await models.refresh() }
                 } label: {
-                    Label("重新整理", systemImage: "arrow.clockwise")
+                    Label("Refresh", systemImage: "arrow.clockwise")
                 }
                 .disabled(models.isLoading)
             }
@@ -76,14 +76,14 @@ struct ModelSettingsView: View {
         .frame(width: 640, height: 520)
         .task { await models.refresh() }
         .confirmationDialog(
-            "要刪除「\(pendingDelete?.displayName ?? "")」嗎？",
+            "Delete “\(pendingDelete?.displayName ?? "")”?",
             isPresented: Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } }),
             presenting: pendingDelete
         ) { model in
-            Button("刪除", role: .destructive) { models.delete(model.id) }
-            Button("取消", role: .cancel) {}
+            Button("Delete", role: .destructive) { models.delete(model.id) }
+            Button("Cancel", role: .cancel) {}
         } message: { model in
-            Text("會釋出 \(sizeFormatter.string(fromByteCount: model.sizeOnDisk ?? 0))。之後需要時可以重新下載。")
+            Text("This frees \(sizeFormatter.string(fromByteCount: model.sizeOnDisk ?? 0)). You can download it again later if you need it.")
         }
     }
 
@@ -108,19 +108,19 @@ struct ModelSettingsView: View {
                         .foregroundStyle(isDefault ? Color.brandGlyph : .secondary)
                 }
                 .buttonStyle(.plain)
-                .help(isDefault ? "目前使用的模型" : "設為使用的模型")
+                .help(isDefault ? LocalizedStringKey("The model in use") : "Use this model")
             }
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(model.displayName)
                     if model.isDefaultForDevice {
-                        badge("最適合這台 Mac", color: .green)
+                        badge("Best for This Mac", color: .green)
                     } else if model.isRecommended {
-                        badge("建議", color: .blue)
+                        badge("Recommended", color: .blue)
                     }
                     if model.state == .incomplete, progress == nil {
-                        badge("下載未完成", color: .orange)
+                        badge("Download Incomplete", color: .orange)
                     }
                 }
                 Text(sizeText(model))
@@ -134,20 +134,20 @@ struct ModelSettingsView: View {
                 ProgressView(value: progress)
                     .brandTint()
                     .frame(width: 110)
-                Text("\(Int(progress * 100))%")
+                Text(verbatim: "\(Int(progress * 100))%")
                     .font(.caption)
                     .monospacedDigit()
                     .frame(width: 34, alignment: .trailing)
-                Button("取消") { models.cancelDownload(model.id) }
+                Button("Cancel") { models.cancelDownload(model.id) }
             } else {
                 switch model.state {
                 case .downloaded:
-                    Button("刪除", role: .destructive) { pendingDelete = model }
+                    Button("Delete", role: .destructive) { pendingDelete = model }
                 case .incomplete:
-                    Button("繼續下載") { models.download(model.id) }
-                    Button("刪除", role: .destructive) { pendingDelete = model }
+                    Button("Resume Download") { models.download(model.id) }
+                    Button("Delete", role: .destructive) { pendingDelete = model }
                 case .notDownloaded:
-                    Button("下載") { models.download(model.id) }
+                    Button("Download") { models.download(model.id) }
                 }
             }
         }
@@ -159,12 +159,12 @@ struct ModelSettingsView: View {
             return sizeFormatter.string(fromByteCount: size)
         }
         if let size = models.remoteSizes[model.id] {
-            return "下載大小 " + sizeFormatter.string(fromByteCount: size)
+            return String(localized: "Download size: \(sizeFormatter.string(fromByteCount: size))")
         }
-        return "大小未知"
+        return String(localized: "Size unknown")
     }
 
-    private func badge(_ text: String, color: Color) -> some View {
+    private func badge(_ text: LocalizedStringKey, color: Color) -> some View {
         Text(text)
             .font(.caption2)
             .padding(.horizontal, 6)

@@ -53,7 +53,7 @@ public struct LRCLIBClient: Sendable {
 
         public var errorDescription: String? {
             switch self {
-            case .badResponse(let code): return "歌詞資料庫回應錯誤（HTTP \(code)）"
+            case .badResponse(let code): return "The lyrics database returned an error (HTTP \(code))."
             }
         }
     }

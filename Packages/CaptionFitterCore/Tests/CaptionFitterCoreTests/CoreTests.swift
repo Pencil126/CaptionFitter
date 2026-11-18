@@ -273,7 +273,11 @@ private func words(_ text: String, start: Double = 0, step: Double = 0.5) -> [Ti
         ]
         let report = AlignmentReport(lines: lines, mediaDuration: 100, scriptDuration: 80)
         #expect(report.interpolatedLines == 1)
-        #expect(report.warnings.count == 3)
+        #expect(report.warnings == [
+            .mostLinesUnmatched(doubtful: 2, total: 3),
+            .endsEarly(percent: 3),
+            .lyricsLengthMismatch(seconds: 20, likelyDifferentVersion: true),
+        ])
 
         let clean = AlignmentReport(lines: [SubtitleLine(start: 0, end: 90, text: "a", confidence: .good)], mediaDuration: 100)
         #expect(!clean.hasWarnings)

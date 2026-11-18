@@ -27,7 +27,7 @@ public struct SpeechLanguage: Identifiable, Hashable, Sendable {
         SpeechLanguage(id: "es", displayName: "Español", code: "es"),
         SpeechLanguage(id: "fr", displayName: "Français", code: "fr"),
         SpeechLanguage(id: "de", displayName: "Deutsch", code: "de"),
-        SpeechLanguage(id: "auto", displayName: "自動偵測", code: nil),
+        SpeechLanguage(id: "auto", displayName: "Detect automatically", code: nil),
     ]
 
     public static let `default` = all[0]
@@ -90,8 +90,8 @@ public enum AlignerError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .emptyScript: return "逐字稿是空的。"
-        case .noSpeechFound: return "在這個檔案中沒有辨識到人聲。"
+        case .emptyScript: return "The transcript is empty."
+        case .noSpeechFound: return "No voice was found in this file."
         }
     }
 }
