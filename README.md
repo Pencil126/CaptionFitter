@@ -1,8 +1,10 @@
-<img src="App/AppIcon.icon/Assets/CaptionFitter.png" width="128" alt="CaptionFitter app icon">
+<p align="center">
+    <img src="App/AppIcon.icon/Assets/CaptionFitter.png" width="128" alt="CaptionFitter app icon">
+</p>
 
-# CaptionFitter
+<h1 align="center">CaptionFitter</h1>
 
-**English** | [繁體中文](README.zh-TW.md)
+<center>**English** | [繁體中文](README.zh-TW.md)</center>
 
 A macOS app that aligns a transcript to the voice in a video and turns it into subtitles. It works for both spoken-word videos and songs. Everything is processed on your Mac; your video is never uploaded.
 

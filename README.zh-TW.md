@@ -1,8 +1,10 @@
-<img src="App/AppIcon.icon/Assets/CaptionFitter.png" width="128" alt="CaptionFitter App 圖示">
+<p align="center">
+    <img src="App/AppIcon.icon/Assets/CaptionFitter.png" width="128" alt="CaptionFitter App 圖示">
+</p>
 
-# CaptionFitter
+<h1 align="center">CaptionFitter</h1>
 
-[English](README.md) | **繁體中文**
+<center>[English](README.md) | **繁體中文**</center>
 
 把逐字稿對齊到影片的人聲，產生字幕的 macOS App。一般人聲影片與歌曲都適用，全部在本機進行處理，不會上傳影片。
 
