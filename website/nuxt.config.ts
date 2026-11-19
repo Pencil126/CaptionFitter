@@ -99,6 +99,10 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    // Plain static files served by wrangler.jsonc. Without this, Nitro sees Cloudflare's build
+    // environment and switches to its Workers server preset, which expects server code that
+    // `nuxt generate` doesn't produce.
+    preset: "static",
     // Serve the app icon straight from the Xcode project instead of keeping a second copy.
     publicAssets: [
       {
