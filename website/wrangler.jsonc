@@ -1,0 +1,13 @@
+// Cloudflare Worker that serves the generated site as static assets; there is no server code.
+// Workers Builds runs `npm run check-locales && npm run generate`, then `npx wrangler deploy`.
+{
+  "name": "captionfitter",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./.output/public",
+    // Pages are written as zh-TW.html rather than zh-TW/index.html, so /zh-TW is served as is
+    // and /zh-TW/ redirects to /zh-TW, matching the links the app generates.
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}

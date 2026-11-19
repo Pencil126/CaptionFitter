@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "title": "CaptionFitter: subtitles that fit the voice",
+    "description": "A macOS app that aligns your transcript to the voice in a video and turns it into subtitles. Works for spoken word and songs, entirely on your Mac."
+  },
+  "nav": {
+    "home": "CaptionFitter home",
+    "docs": "Docs",
+    "github": "CaptionFitter on GitHub",
+    "menu": "Open menu",
+    "close": "Close menu",
+    "language": "Language"
+  },
+  "hero": {
+    "title": "Subtitles that fit the voice",
+    "subtitle": "CaptionFitter aligns your transcript to the speech in a video and turns it into subtitles. It works for spoken word and songs, and everything stays on your Mac.",
+    "download": "Download for Mac",
+    "github": "View on GitHub",
+    "requirements": "Requires macOS 26 or later on Apple Silicon. Free and open source."
+  },
+  "steps": {
+    "title": "How it works",
+    "open": {
+      "title": "Open a video",
+      "body": "Drop in a video or audio file to get started."
+    },
+    "transcript": {
+      "title": "Add a transcript",
+      "body": "Paste the text you already have, transcribe automatically, or search lyrics."
+    },
+    "align": {
+      "title": "Align and export",
+      "body": "Review each line, fix anything that needs it, and export SRT or a video with subtitles."
+    }
+  },
+  "features": {
+    "title": "Everything you need to finish the subtitles",
+    "sources": {
+      "title": "Transcript sources",
+      "body": "Paste a transcript, transcribe automatically when you have none, or search lyrics on LRCLIB."
+    },
+    "editor": {
+      "title": "Preview and subtitle editor",
+      "body": "Edit text, adjust timing, split and merge lines, and shift everything at once, with undo."
+    },
+    "review": {
+      "title": "See what needs review",
+      "body": "Lines that may be off are marked so you know where to look before you export."
+    },
+    "style": {
+      "title": "Subtitle style",
+      "body": "Choose the font, size, colors, outline, shadow, and position. The preview is what gets exported."
+    },
+    "export": {
+      "title": "SRT or video with subtitles",
+      "body": "Export a subtitle file, a new video with the subtitles burned in, or both."
+    },
+    "models": {
+      "title": "On-device speech models",
+      "body": "Download the speech model that suits your Mac, and delete the ones you don't need."
+    }
+  },
+  "screenshots": {
+    "title": "A closer look",
+    "placeholder": "Screenshot coming soon",
+    "main": "The main window after aligning a transcript",
+    "editor": "Editing subtitle text and timing",
+    "export": "Export options"
+  },
+  "privacy": {
+    "title": "Your video stays on your Mac",
+    "body": "Alignment and export run entirely on your Mac, and your video and transcript are never uploaded. CaptionFitter only goes online to download speech models and to search lyrics when you ask it to."
+  },
+  "footer": {
+    "docs": "Docs",
+    "github": "GitHub",
+    "releases": "Releases",
+    "made": "CaptionFitter is a native macOS app built with SwiftUI and WhisperKit."
+  },
+  "docs": {
+    "title": "Docs",
+    "contents": "Contents",
+    "previous": "Previous",
+    "next": "Next",
+    "edit": "Edit this page on GitHub"
+  },
+  "error": {
+    "notFound": "Page not found",
+    "notFoundBody": "This page doesn't exist or has moved.",
+    "other": "Something went wrong",
+    "home": "Back to home"
+  }
+}

@@ -1,0 +1,4 @@
+# Read by Cloudflare when serving the site; not served as a page.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
