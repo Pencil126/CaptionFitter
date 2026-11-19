@@ -68,7 +68,9 @@ Markdown／Vue 原始碼 ── npm run generate ──▶ 靜態 HTML（.output
 | 正式分支       | `main`                                                |
 | 建置監看路徑   | 只包含 `website/*`，其他資料夾的改動不觸發建置        |
 
-推送到 `main` 以外的分支時，Workers Builds 預設會上傳一個預覽版本，不影響正式網站，並在 GitHub 的提交狀態附上預覽網址，可以在合併前檢查。這項設定在後台的「非正式分支建置」，預設的部署指令是 `npx wrangler versions upload`。
+推送到 `main` 以外的分支時，Workers Builds 預設會上傳一個預覽版本，不影響正式網站，並在 GitHub 的提交狀態附上預覽網址，可以在合併前檢查。這項設定在後台建置設定的「預覽分支的建置」，預覽指令用預設的 `npx wrangler preview`。
+
+建置設定的「API 權杖」選「建立新 Token」，由 Cloudflare 自動產生。權杖被刪除或撤銷時，建置會無法部署，要回到這裡重新建立。
 
 網站網址寫在 `nuxt.config.ts` 的 `siteUrl`，用於搜尋引擎的語言對照與分享預覽圖。
 
