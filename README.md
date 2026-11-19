@@ -4,7 +4,11 @@
 
 <h1 align="center">CaptionFitter</h1>
 
-<center>**English** | [繁體中文](README.zh-TW.md)</center>
+<div align="center">
+
+**English** | [繁體中文](README.zh-TW.md)
+
+</div>
 
 A macOS app that aligns a transcript to the voice in a video and turns it into subtitles. It works for both spoken-word videos and songs. Everything is processed on your Mac; your video is never uploaded.
 
