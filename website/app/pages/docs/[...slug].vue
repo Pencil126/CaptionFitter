@@ -74,13 +74,5 @@ useSeoMeta({
         <UiIcon name="arrow-right" class="size-[1.15em]" aria-hidden="true" />
       </GlassButton>
     </nav>
-
-    <p class="mt-8 text-sm">
-      <a
-        :href="`https://github.com/Pencil126/CaptionFitter/blob/main/website/content/${page.stem}.${page.extension}`"
-        class="text-navy/55 underline-offset-4 hover:text-navy hover:underline dark:text-white/50 dark:hover:text-white"
-        >{{ t("docs.edit") }}</a
-      >
-    </p>
   </article>
 </template>
