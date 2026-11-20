@@ -10,13 +10,14 @@ const steps = [
 
 <template>
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-    <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">
+    <h2 v-reveal class="text-2xl font-semibold tracking-tight sm:text-3xl">
       {{ t("steps.title") }}
     </h2>
     <ol class="mt-8 grid gap-4 md:grid-cols-3">
       <li
         v-for="(step, index) in steps"
         :key="step.key"
+        v-reveal="index * 120"
         class="rounded-2xl border border-navy/8 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04]"
       >
         <div class="flex items-center gap-3">

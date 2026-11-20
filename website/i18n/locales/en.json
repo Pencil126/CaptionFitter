@@ -63,7 +63,6 @@
   },
   "screenshots": {
     "title": "Take a look",
-    "placeholder": "Work in progress",
     "main": "Main window",
     "editor": "Editing subtitle text and timing",
     "export": "Export options"

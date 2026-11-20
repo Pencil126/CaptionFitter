@@ -119,7 +119,7 @@ website/
 | `AppHeader`、`AppFooter`                                  | 頁首與頁尾                                                          |
 | `LanguageSwitcher`                                        | 切換英文／繁體中文                                                  |
 | `HeroSection`、`HowItWorks`、`FeatureGrid`、`PrivacyNote` | 介紹頁的各個區塊                                                    |
-| `ScreenshotFrame`                                         | 截圖外框；沒有圖片時顯示佔位                                        |
+| `ScreenshotFrame`                                         | 截圖外框；沒有圖片或圖片載入中時顯示佔位與光澤動畫                  |
 | `DocsSidebar`                                             | 說明文件的側欄目錄                                                  |
 | `UiIcon`                                                  | 網站用的線條圖示                                                    |
 
@@ -188,7 +188,7 @@ order: 5
 
 ### 加上截圖
 
-截圖依語言命名，例如 `main-window.en.png`、`main-window.zh-TW.png`，放在 `public/screenshots/`。然後在使用 `ScreenshotFrame` 的地方加上 `src`：
+截圖依語言命名，例如 `main-window.en.png`、`main-window.zh-TW.png`，放在 `public/screenshots/`。外框固定是 16:10，截圖請裁成這個比例，否則邊緣會被裁掉。然後在使用 `ScreenshotFrame` 的地方加上 `src`：
 
 ```vue
 <script setup lang="ts">
