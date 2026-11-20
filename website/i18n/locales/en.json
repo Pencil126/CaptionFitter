@@ -6,6 +6,7 @@
   "nav": {
     "home": "CaptionFitter home",
     "docs": "Docs",
+    "download": "Download",
     "github": "CaptionFitter on GitHub",
     "menu": "Open menu",
     "close": "Close menu",
@@ -15,7 +16,7 @@
     "title": "Every line, just right.",
     "subtitle": "CaptionFitter aligns your transcript to the speech in a video and turns it into subtitles. It works for spoken word and songs, and everything stays on your device.",
     "download": "Download Now for Mac",
-    "github": "View on GitHub",
+    "docs": "Documentation",
     "requirements": "Requires macOS 26 or later on Apple Silicon."
   },
   "steps": {

@@ -6,6 +6,7 @@
   "nav": {
     "home": "CaptionFitter 首頁",
     "docs": "說明文件",
+    "download": "下載",
     "github": "CaptionFitter 的 GitHub 頁面",
     "menu": "開啟選單",
     "close": "關閉選單",
@@ -15,7 +16,7 @@
     "title": "每一句，剛剛好。",
     "subtitle": "CaptionFitter 把您的逐字稿對齊到影片中的人聲，產生字幕。一般講話與歌曲都適用，而且全部在您的裝置上處理。",
     "download": "立即下載 Mac 版",
-    "github": "在 GitHub 查看",
+    "docs": "說明文件",
     "requirements": "需要 macOS 26 以上與 Apple 晶片。"
   },
   "steps": {

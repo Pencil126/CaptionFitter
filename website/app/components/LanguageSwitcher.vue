@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { size = "sm" } = defineProps<{ size?: "sm" | "md" | "lg" }>();
+
 const { locale, locales } = useI18n();
 const switchLocalePath = useSwitchLocalePath();
 
@@ -10,7 +12,7 @@ const other = computed(() =>
 
 <template>
   <GlassButton
-    size="sm"
+    :size="size"
     :to="switchLocalePath(other.code)"
     :localize="false"
     :lang="other.language"

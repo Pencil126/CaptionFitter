@@ -32,13 +32,19 @@ watch(
       </NuxtLinkLocale>
 
       <nav class="ml-auto hidden items-center gap-2 sm:flex">
-        <NuxtLinkLocale
-          to="/docs"
-          class="rounded-full px-3 py-1.5 text-sm text-navy/70 transition hover:text-navy dark:text-white/70 dark:hover:text-white"
-          active-class="!text-navy dark:!text-white font-medium"
+        <GlassButton
+          variant="primary"
+          size="sm"
+          href="https://github.com/Pencil126/CaptionFitter/releases/latest"
+          :label="t('hero.download')"
         >
+          <template #icon>
+            <UiIcon name="download" />
+          </template>
+        </GlassButton>
+        <GlassButton size="sm" to="/docs">
           {{ t("nav.docs") }}
-        </NuxtLinkLocale>
+        </GlassButton>
         <LanguageSwitcher />
         <GlassButton
           size="sm"
@@ -71,17 +77,26 @@ watch(
       id="mobile-menu"
       class="border-t border-navy/5 px-4 pt-2 pb-4 sm:hidden dark:border-white/10"
     >
-      <NuxtLinkLocale
-        to="/docs"
-        class="block rounded-lg py-2.5 text-base font-medium"
-      >
-        {{ t("nav.docs") }}
-      </NuxtLinkLocale>
-      <div class="mt-2 flex gap-2">
-        <LanguageSwitcher />
+      <div class="mt-2 flex flex-col items-center gap-2">
         <GlassButton
-          size="sm"
+          variant="primary"
+          size="lg"
+          href="https://github.com/Pencil126/CaptionFitter/releases/latest"
+          class="w-full"
+        >
+          <template #icon>
+            <UiIcon name="download" />
+          </template>
+          {{ t("nav.download") }}
+        </GlassButton>
+        <GlassButton size="lg" to="/docs" class="w-full">
+          {{ t("nav.docs") }}
+        </GlassButton>
+        <LanguageSwitcher size="lg" class="w-full" />
+        <GlassButton
+          size="lg"
           href="https://github.com/Pencil126/CaptionFitter"
+          class="w-full"
         >
           <template #icon>
             <UiIcon name="github" />

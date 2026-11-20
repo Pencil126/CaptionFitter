@@ -36,14 +36,11 @@ const { t } = useI18n();
             </template>
             {{ t("hero.download") }}
           </GlassButton>
-          <GlassButton
-            size="lg"
-            href="https://github.com/Pencil126/CaptionFitter"
-          >
+          <GlassButton size="lg" to="/docs">
             <template #icon>
-              <UiIcon name="github" />
+              <UiIcon name="transcript" />
             </template>
-            {{ t("hero.github") }}
+            {{ t("hero.docs") }}
           </GlassButton>
         </div>
         <p class="mt-5 text-sm text-navy/55 dark:text-white/50">
