@@ -10,8 +10,8 @@ CaptionFitter 是原生 Swift／SwiftUI 的 macOS App：把使用者提供的逐
 
 這些是專案擁有者明確決定過的，不要自行更改：
 
-- **原生 Swift**。不引入 Python、Electron 或網頁介面。
-- **唯一的第三方依賴是 WhisperKit**。新增其他依賴前先徵求同意。
+- **原生 Swift**。App 不引入 Python、Electron 或網頁介面。`website/` 的介紹網站是唯一例外，只用來發佈到 Cloudflare Workers，不進入 App。
+- **App 唯一的第三方依賴是 WhisperKit**。網站的 npm 套件列在 `website/package.json`。兩邊新增依賴前都要先徵求同意。
 - **不用 XcodeGen、Tuist 等專案產生工具**，直接維護 `CaptionFitter.xcodeproj`。
 - **介面用詞是「逐字稿」與「字幕」**，不要寫「文稿」。「歌詞」只出現在「搜尋歌詞」這個來源選項，其他地方不強調歌曲。
 - **介面有英文與繁體中文，跟隨系統語言**。英文是原文（開發語言），繁體中文是翻譯；系統語言兩者都不是時顯示英文。不加 App 內的語言選單，使用者可在系統設定中為單一 App 指定語言。
@@ -38,6 +38,10 @@ Packages/CaptionFitterCore/ 核心邏輯的 Swift Package，不依賴介面
   Sources/captionfitter-cli/ 命令列工具，用來不開 App 測試核心
   Tests/CaptionFitterCoreTests/CoreTests.swift
 CaptionFitter.xcodeproj
+website/                    介紹網站（Nuxt + Tailwind CSS），部署到 Cloudflare Workers
+  app/                      頁面、版面、元件（GlassButton 是所有按鈕共用的元件）
+  content/<語系>/docs/      說明文件（Markdown），en 與 zh-TW 各一份
+  i18n/locales/             網站介面字串
 ```
 
 - `App/` 是資料夾同步群組：**新增或刪除檔案不需要改專案檔**，放進資料夾就會被編譯。
@@ -73,6 +77,16 @@ xcodebuild -project CaptionFitter.xcodeproj -scheme CaptionFitter -configuration
 ```bash
 .github/scripts/check-localizations.sh
 ```
+
+改到 `website/` 時：
+
+```bash
+cd website && npm ci && npm run format && npm run check-locales && npm run generate
+```
+
+網站的格式由 Prettier（預設值加上 Tailwind 外掛）統一，改動後執行 `npm run format`。
+
+網站由 Cloudflare 的 Workers Builds 在推送到 `main` 時建置並部署，建置設定在 Cloudflare 後台（見 `website/README.md`），Worker 的設定在 `website/wrangler.jsonc`；`test.yml` 會略過 `website/` 的改動。網站的網址寫在 `nuxt.config.ts` 的 `siteUrl`。
 
 專案擁有者通常從 Xcode 執行 App，所以你建置成功不代表對方看到的是新版，要請對方重新執行。
 
@@ -137,6 +151,10 @@ cd Packages/CaptionFitterCore && swift run -c release captionfitter-cli
 3. **改英文**：英文是 key，改了就是新字串。把中文搬到新 key，刪掉 Xcode 標示為 STALE 的舊項目。
 4. 提交前跑 `.github/scripts/check-localizations.sh`，有缺少翻譯的字串會列出來並失敗。
 5. 用 Xcode 的 Edit Scheme › Run › Options › App Language 切換 English／繁體中文檢查畫面；選「Double-Length Pseudolanguage」可找出文字被截斷的地方（英文通常比中文長）。
+
+### 網站的文字
+
+網站不用 `.xcstrings`：介面字串在 `website/i18n/locales/en.json` 與 `zh-TW.json`，說明文件在 `website/content/en/docs/` 與 `website/content/zh-TW/docs/`，兩種語言的 key、檔案與 `order` 要一一對應（`npm run check-locales` 會檢查）。用詞同樣依照下表；說明文件中的按鈕與選單名稱要跟 App 實際的文字一致。
 
 ### 用詞對照
 

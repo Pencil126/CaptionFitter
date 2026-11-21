@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "title": "CaptionFitter - Every line, just right.",
+    "description": "An app that aligns your transcript to the voice in a video and turns it into subtitles. Works for spoken word and songs, entirely on your device."
+  },
+  "nav": {
+    "home": "CaptionFitter home",
+    "docs": "Docs",
+    "download": "Download",
+    "github": "CaptionFitter on GitHub",
+    "menu": "Open menu",
+    "close": "Close menu",
+    "language": "Language"
+  },
+  "hero": {
+    "title": "Every line, just right.",
+    "subtitle": "CaptionFitter aligns your transcript to the speech in a video and turns it into subtitles. It works for spoken word and songs, and everything stays on your device.",
+    "download": "Download Now for Mac",
+    "docs": "Documentation",
+    "requirements": "Requires macOS 26 or later on Apple Silicon."
+  },
+  "steps": {
+    "title": "How it works",
+    "open": {
+      "title": "Open a video",
+      "body": "Drop in a video or audio file to get started."
+    },
+    "transcript": {
+      "title": "Set up the transcript",
+      "body": "Paste the text you already have, transcribe automatically, or search for a song and apply its lyrics automatically."
+    },
+    "align": {
+      "title": "Align and export",
+      "body": "Review and fix anything that needs it, then export an SRT subtitle file or a video with subtitles."
+    }
+  },
+  "features": {
+    "title": "Everything you need to finish the subtitles",
+    "sources": {
+      "title": "Transcript sources",
+      "body": "Paste a transcript, transcribe automatically when you have none, or search for a song on LRCLIB and apply its lyrics."
+    },
+    "editor": {
+      "title": "Preview and subtitle editor",
+      "body": "Edit text, adjust timing, split and merge subtitles, and shift everything at once."
+    },
+    "review": {
+      "title": "See what needs review",
+      "body": "Lines that may be off are marked so you know what to watch for before you export."
+    },
+    "style": {
+      "title": "Subtitle style",
+      "body": "Set the font, size, colors, shadow, position, and more to design how your subtitles look."
+    },
+    "export": {
+      "title": "SRT subtitle file or video with subtitles",
+      "body": "Export a subtitle file, a new video with the subtitles burned in, or both."
+    },
+    "models": {
+      "title": "On-device speech models",
+      "body": "Download the speech model that suits your device and process everything with its own computing power."
+    }
+  },
+  "screenshots": {
+    "main": "Main window"
+  },
+  "privacy": {
+    "title": "Your data never leaves your device",
+    "body": "Alignment and export run entirely on your device, and your video and transcript are never uploaded. CaptionFitter only needs an internet connection to download speech models and when you search lyrics."
+  },
+  "footer": {
+    "docs": "Docs",
+    "github": "GitHub",
+    "releases": "Release history",
+    "made": "CaptionFitter is an app built with SwiftUI and WhisperKit."
+  },
+  "docs": {
+    "title": "Docs",
+    "contents": "Contents",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "error": {
+    "notFound": "Page not found",
+    "notFoundBody": "Sorry, this page no longer exists.",
+    "other": "Something went wrong",
+    "home": "Back to home"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "title": "CaptionFitter - 每一句，剛剛好。",
+    "description": "把逐字稿對齊到影片人聲、產生字幕的 App。一般講話與歌曲都適用，全部在您的裝置上處理。"
+  },
+  "nav": {
+    "home": "CaptionFitter 首頁",
+    "docs": "說明文件",
+    "download": "下載",
+    "github": "CaptionFitter 的 GitHub 頁面",
+    "menu": "開啟選單",
+    "close": "關閉選單",
+    "language": "語言"
+  },
+  "hero": {
+    "title": "每一句，剛剛好。",
+    "subtitle": "CaptionFitter 把您的逐字稿對齊到影片中的人聲，產生字幕。一般講話與歌曲都適用，而且全部在您的裝置上處理。",
+    "download": "立即下載 Mac 版",
+    "docs": "說明文件",
+    "requirements": "需要 macOS 26 以上與 Apple 晶片。"
+  },
+  "steps": {
+    "title": "如何使用",
+    "open": {
+      "title": "開啟影片",
+      "body": "拖入影片或音訊檔就能開始。"
+    },
+    "transcript": {
+      "title": "設定逐字稿",
+      "body": "貼上手邊的文字、自動轉錄，或搜尋歌曲並自動套用歌詞。"
+    },
+    "align": {
+      "title": "對齊並輸出",
+      "body": "檢查並修正需要調整的地方，再輸出成 SRT 字幕檔或嵌入字幕的影片。"
+    }
+  },
+  "features": {
+    "title": "完成字幕需要的功能都在這裡",
+    "sources": {
+      "title": "多種逐字稿來源",
+      "body": "貼上逐字稿，沒有逐字稿時自動轉錄，也可以從 LRCLIB 搜尋歌曲並套用該歌詞。"
+    },
+    "editor": {
+      "title": "預覽與字幕編輯",
+      "body": "修改文字、調整時間、分割與合併字幕、整體位移。"
+    },
+    "review": {
+      "title": "標出待檢查的字幕",
+      "body": "可能有誤的字幕行會被標記，輸出前就知道該注意哪裡。"
+    },
+    "style": {
+      "title": "字幕樣式",
+      "body": "設定字型、大小、顏色、陰影與位置等等，自由設計字幕的樣子。"
+    },
+    "export": {
+      "title": "SRT 字幕檔或含字幕的影片",
+      "body": "輸出字幕檔、把字幕嵌入畫面的新影片，或兩者都要。"
+    },
+    "models": {
+      "title": "在本機執行的語音模型",
+      "body": "下載適合您裝置的語音模型，使用本地運算資源處理。"
+    }
+  },
+  "screenshots": {
+    "main": "主視窗"
+  },
+  "privacy": {
+    "title": "您的資料不會離開您的裝置",
+    "body": "對齊與輸出全部在您的裝置上執行，影片與逐字稿都不會上傳。CaptionFitter 只有在下載語音模型，以及您搜尋歌詞時才會需要網路連線。"
+  },
+  "footer": {
+    "docs": "說明文件",
+    "github": "GitHub",
+    "releases": "版本發佈記錄",
+    "made": "CaptionFitter 是以 SwiftUI 與 WhisperKit 打造的 App。"
+  },
+  "docs": {
+    "title": "說明文件",
+    "contents": "目錄",
+    "previous": "上一頁",
+    "next": "下一頁"
+  },
+  "error": {
+    "notFound": "找不到頁面",
+    "notFoundBody": "抱歉，這個頁面已經不存在。",
+    "other": "發生錯誤",
+    "home": "回到首頁"
+  }
+}

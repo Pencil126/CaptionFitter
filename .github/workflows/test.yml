@@ -5,7 +5,7 @@ on:
     # "**" limits this to branches; without it, the tag created when a
     # release is published would trigger a run too.
     branches: ["**"]
-    paths-ignore: ["**.md"]
+    paths-ignore: ["**.md", "website/**"]
 
 # A newer push to the same branch supersedes the run in progress.
 concurrency:
