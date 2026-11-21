@@ -186,9 +186,9 @@ order: 5
 | 新增按鈕       | 用 `<GlassButton>`（見下方）                                                                                        |
 | 新增圖示       | 在 `UiIcon.vue` 的 `paths` 加一筆 24×24 格線的 SVG 路徑，並把名稱加進 `name` 的型別                                 |
 
-### 加上截圖
+### 截圖
 
-截圖依語言命名，例如 `main-window.en.png`、`main-window.zh-TW.png`，放在 `public/screenshots/`。外框固定是 16:10，截圖請裁成這個比例，否則邊緣會被裁掉。然後在使用 `ScreenshotFrame` 的地方加上 `src`：
+截圖依語言命名，例如 `main-window.en.webp`、`main-window.zh-TW.webp`，放在 `public/screenshots/`，然後在使用 `ScreenshotFrame` 的地方加上 `src`，並用 `width`、`height` 填圖片的像素尺寸，外框會照這個比例顯示，圖片載入前不會跳動，也不會被裁切：
 
 ```vue
 <script setup lang="ts">
@@ -197,15 +197,19 @@ const { t, locale } = useI18n();
 
 <template>
   <ScreenshotFrame
-    :caption="t('screenshots.main')"
-    :src="`/screenshots/main-window.${locale}.png`"
+    :label="t('screenshots.main')"
+    :src="`/screenshots/main-window.${locale}.webp`"
+    :width="1920"
+    :height="1080"
   />
 </template>
 ```
 
-`src` 以 `/` 開頭，`public/` 就是網站的根目錄。
+`label` 不會顯示在畫面上，是給螢幕閱讀器念的說明。
 
-### 使用 GlassButton
+`src` 填入`public/` 後的目錄。
+
+### GlassButton
 
 ```vue
 <!-- 站內連結：to 會自動加上目前語言的前綴 -->

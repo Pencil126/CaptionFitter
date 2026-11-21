@@ -62,10 +62,7 @@
     }
   },
   "screenshots": {
-    "title": "Take a look",
-    "main": "Main window",
-    "editor": "Editing subtitle text and timing",
-    "export": "Export options"
+    "main": "Main window"
   },
   "privacy": {
     "title": "Your data never leaves your device",

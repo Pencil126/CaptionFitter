@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { t } = useI18n();
+const { t, locale } = useI18n();
 </script>
 
 <template>
@@ -49,7 +49,10 @@ const { t } = useI18n();
       </div>
 
       <ScreenshotFrame
-        :caption="t('screenshots.main')"
+        :label="t('screenshots.main')"
+        :src="`/screenshots/main-window.${locale}.webp`"
+        :width="1974"
+        :height="1344"
         class="hero-enter hero-enter-late"
       />
     </div>

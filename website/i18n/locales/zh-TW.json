@@ -62,10 +62,7 @@
     }
   },
   "screenshots": {
-    "title": "看看長怎樣",
-    "main": "主視窗",
-    "editor": "編輯字幕文字與時間",
-    "export": "輸出選項"
+    "main": "主視窗"
   },
   "privacy": {
     "title": "您的資料不會離開您的裝置",
